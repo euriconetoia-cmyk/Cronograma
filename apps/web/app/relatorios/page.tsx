@@ -19,21 +19,33 @@ type RoomUsage = {
   meetings: number;
 };
 
+type ConflictData = {
+  summary: {
+    total: number;
+    errors: number;
+    warnings: number;
+  };
+  byCode: Record<string, number>;
+};
+
 export default function ReportsPage() {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
   const [workload, setWorkload] = useState<Workload[]>([]);
   const [rooms, setRooms] = useState<RoomUsage[]>([]);
+  const [conflicts, setConflicts] = useState<ConflictData | null>(null);
   const [message, setMessage] = useState('');
 
   async function load(selectedYear = year) {
     try {
-      const [workloadData, roomData] = await Promise.all([
+      const [workloadData, roomData, conflictData] = await Promise.all([
         apiGet<Workload[]>(`/reports/workload?year=${selectedYear}`),
         apiGet<RoomUsage[]>(`/reports/room-usage?year=${selectedYear}`),
+        apiGet<ConflictData>(`/reports/conflicts?year=${selectedYear}`),
       ]);
       setWorkload(workloadData);
       setRooms(roomData);
+      setConflicts(conflictData);
       setMessage('');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Erro ao carregar relatórios.');
@@ -74,6 +86,37 @@ export default function ReportsPage() {
       </section>
 
       {message && <p className="form-message">{message}</p>}
+
+      {conflicts && (
+        <section className="calendar-summary">
+          <div><span>Conflitos</span><strong>{conflicts.summary.total}</strong></div>
+          <div><span>Erros críticos</span><strong>{conflicts.summary.errors}</strong></div>
+          <div><span>Alertas</span><strong>{conflicts.summary.warnings}</strong></div>
+          <div><span>Tipos</span><strong>{Object.keys(conflicts.byCode).length}</strong></div>
+        </section>
+      )}
+
+      {conflicts && (
+        <section className="report-card">
+          <h2>Conflitos por tipo</h2>
+          {Object.keys(conflicts.byCode).length === 0 ? (
+            <p className="validation-ok">Nenhum conflito identificado.</p>
+          ) : (
+            <div className="bar-list">
+              {Object.entries(conflicts.byCode)
+                .sort((a, b) => b[1] - a[1])
+                .map(([code, value]) => (
+                  <div className="bar-row" key={code}>
+                    <div className="bar-label">
+                      <span>{code}</span>
+                      <strong>{value}</strong>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="dashboard-sections">
         <article className="report-card">
