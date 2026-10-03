@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ApprovalDecision, ScheduleStatus } from '@cronograma/database';
+import { validateSchedule } from '@cronograma/validation-engine';
 import { DatabaseService } from '../database/database.service';
 import { VersioningService } from './versioning.service';
 
@@ -28,6 +29,8 @@ export class WorkflowService {
       throw new BadRequestException('Somente cronogramas em revisão podem ser enviados para aprovação.');
     }
 
+    await this.ensureNoValidationErrors(classGroupId);
+
     const updated = await this.database.$transaction(async (tx) => {
       const result = await tx.schedule.update({
         where: { id: schedule.id },
@@ -53,6 +56,7 @@ export class WorkflowService {
   }
 
   async approve(classGroupId: string, actorName: string, comment?: string) {
+    await this.ensureNoValidationErrors(classGroupId);
     return this.decide(
       classGroupId,
       ApprovalDecision.APPROVED,
@@ -94,6 +98,11 @@ export class WorkflowService {
       actorName,
       comment,
     );
+  }
+
+  async compare(classGroupId: string, fromVersion: number, toVersion: number) {
+    const schedule = await this.requireSchedule(classGroupId);
+    return this.versioning.compare(schedule.id, fromVersion, toVersion);
   }
 
   async history(classGroupId: string) {
@@ -180,6 +189,64 @@ export class WorkflowService {
     await this.versioning.audit('Schedule', schedule.id, action, actorName, comment);
 
     return updated;
+  }
+
+  private async ensureNoValidationErrors(classGroupId: string) {
+    const schedule = await this.database.schedule.findUnique({
+      where: { classGroupId },
+      include: {
+        items: {
+          include: {
+            curricularUnit: true,
+            meetings: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+        classGroup: {
+          include: {
+            academicCalendar: {
+              include: { events: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!schedule) {
+      throw new NotFoundException('Cronograma não encontrado.');
+    }
+
+    const issues = validateSchedule({
+      endDateLimit: schedule.classGroup.endDateLimit?.toISOString().slice(0, 10),
+      restrictions: schedule.classGroup.academicCalendar.events.map((event) => ({
+        startDate: event.startDate.toISOString().slice(0, 10),
+        endDate: event.endDate.toISOString().slice(0, 10),
+        blocksAcademicActivities: event.blocksAcademicActivities,
+        reason: event.title,
+      })),
+      items: schedule.items.map((item) => ({
+        title: item.title,
+        type: item.type,
+        startDate: item.startDate.toISOString().slice(0, 10),
+        endDate: item.endDate.toISOString().slice(0, 10),
+        avaEndDate: item.avaEndDate?.toISOString().slice(0, 10),
+        totalHours: item.totalHours,
+        expectedHours: item.curricularUnit?.totalHours,
+        requiredMeetingCount: item.curricularUnit?.meetingCount,
+        meetings: item.meetings.map((meeting) => ({
+          date: meeting.date.toISOString().slice(0, 10),
+          startTime: meeting.startTime,
+          endTime: meeting.endTime,
+        })),
+      })),
+    });
+
+    const errors = issues.filter((issue) => issue.severity === 'ERROR');
+    if (errors.length > 0) {
+      throw new BadRequestException(
+        `O cronograma possui ${errors.length} erro(s) de validação e não pode avançar para aprovação.`,
+      );
+    }
   }
 
   private async requireSchedule(classGroupId: string) {
