@@ -39,6 +39,18 @@ export default function HomePage() {
           <Link className="card-link" href="/recursos">
             Acessar Recursos
           </Link>
+          {' | '}
+          <Link className="card-link" href="/dashboard">
+            Dashboard
+          </Link>
+          {' | '}
+          <Link className="card-link" href="/planejamento-anual">
+            Planejamento Anual
+          </Link>
+          {' | '}
+          <Link className="card-link" href="/relatorios">
+            Relatórios
+          </Link>
         </p>
       </section>
 
