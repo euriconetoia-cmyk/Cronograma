@@ -31,6 +31,19 @@ export class SchedulesController {
     return this.workflowService.history(classGroupId);
   }
 
+  @Get('class/:classGroupId/compare/:fromVersion/:toVersion')
+  compare(
+    @Param('classGroupId') classGroupId: string,
+    @Param('fromVersion') fromVersion: string,
+    @Param('toVersion') toVersion: string,
+  ) {
+    return this.workflowService.compare(
+      classGroupId,
+      Number(fromVersion),
+      Number(toVersion),
+    );
+  }
+
   @Post('class/:classGroupId/review')
   submitForReview(
     @Param('classGroupId') classGroupId: string,
