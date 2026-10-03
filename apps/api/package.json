@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@cronograma/database": "workspace:*",
+    "@cronograma/validation-engine": "workspace:*",
     "@nestjs/common": "latest",
     "@nestjs/core": "latest",
     "@nestjs/platform-express": "latest",
