@@ -22,6 +22,11 @@ export class CalendarsController {
     return this.calendarsService.createEvent(data);
   }
 
+  @Get(':id/restrictions')
+  restrictions(@Param('id') id: string) {
+    return this.calendarsService.restrictions(id);
+  }
+
   @Delete('events/:id')
   removeEvent(@Param('id') id: string) {
     return this.calendarsService.removeEvent(id);
