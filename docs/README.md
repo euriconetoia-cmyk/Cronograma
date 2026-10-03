@@ -22,6 +22,7 @@ Este diretório concentra a documentação oficial do sistema de planejamento ac
 16. [Validation Engine e Editor](16-validation-editor.md)
 17. [Versionamento, Auditoria e Aprovação](17-versionamento-aprovacao.md)
 18. [Recursos e Conflitos Operacionais](18-recursos-conflitos.md)
+19. [Dashboard e Relatórios](19-dashboard-relatorios.md)
 
 ## Princípios do projeto
 
