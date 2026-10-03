@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum CourseStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ModalityStatus {
+  ACTIVE
+  INACTIVE
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -25,30 +35,96 @@ model Unit {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   courses   Course[]
 }
 
+model Modality {
+  id                       String         @id @default(cuid())
+  name                     String         @unique
+  code                     String         @unique
+  description              String?
+  status                   ModalityStatus @default(ACTIVE)
+  allowsEad                Boolean        @default(false)
+  allowsSynchronous        Boolean        @default(false)
+  allowsInPersonMeetings   Boolean        @default(true)
+  allowsWebClasses         Boolean        @default(false)
+  defaultDailyHours        Int?
+  defaultAvaExtraDays      Int            @default(0)
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+
+  courses                  Course[]
+}
+
 model Course {
-  id         String          @id @default(cuid())
-  name       String
-  code       String          @unique
-  totalHours Int
-  active     Boolean         @default(true)
-  unitId     String?
-  unit       Unit?           @relation(fields: [unitId], references: [id])
-  versions   CourseVersion[]
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  id                String          @id @default(cuid())
+  name              String
+  code              String          @unique
+  description       String?
+  totalHours        Int
+  status            CourseStatus    @default(ACTIVE)
+  responsibleUnitId String?
+  defaultModalityId String?
+  responsibleUnit   Unit?           @relation(fields: [responsibleUnitId], references: [id])
+  defaultModality   Modality?       @relation(fields: [defaultModalityId], references: [id])
+  versions          CourseVersion[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
 
 model CourseVersion {
-  id        String   @id @default(cuid())
-  name      String
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  courseId    String
+  course      Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  active      Boolean        @default(true)
+  modules     CourseModule[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   @@unique([courseId, name])
+}
+
+model CourseModule {
+  id              String           @id @default(cuid())
+  name            String
+  code            String?
+  order           Int
+  courseVersionId String
+  courseVersion   CourseVersion    @relation(fields: [courseVersionId], references: [id], onDelete: Cascade)
+  curricularUnits CurricularUnit[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([courseVersionId, order])
+}
+
+model CurricularUnit {
+  id                    String       @id @default(cuid())
+  name                  String
+  code                  String?
+  order                 Int
+  totalHours            Int
+  inPersonHours         Int          @default(0)
+  eadHours              Int          @default(0)
+  synchronousHours      Int          @default(0)
+  asynchronousHours     Int          @default(0)
+  suggestedStudyDays    Int?
+  meetingCount          Int          @default(0)
+  meetingHours          Int?
+  requiresWebClass      Boolean      @default(false)
+  requiresInPerson      Boolean      @default(false)
+  recoveryEnabled       Boolean      @default(false)
+  enrollmentPeriodDays  Int?
+  inauguralClass        Boolean      @default(false)
+  avaExtraDays          Int          @default(0)
+  observations          String?
+  moduleId              String
+  module                CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  @@unique([moduleId, order])
 }
