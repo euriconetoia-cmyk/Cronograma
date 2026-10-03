@@ -19,6 +19,7 @@ Este diretório concentra a documentação oficial do sistema de planejamento ac
 13. [Calendário Acadêmico](13-calendario-academico.md)
 14. [Turmas e Regras](14-turmas-e-regras.md)
 15. [Schedule Engine: Geração Completa](15-schedule-engine-geracao.md)
+16. [Validation Engine e Editor](16-validation-editor.md)
 
 ## Princípios do projeto
 

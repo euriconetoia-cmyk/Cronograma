@@ -5,6 +5,9 @@ import {
   Weekday,
 } from '@cronograma/database';
 import { generateSchedule, type Weekday as EngineWeekday } from '@cronograma/schedule-engine';
+import { validateDateOrder, validateSchedule } from '@cronograma/validation-engine';
+import { BadRequestException } from '@nestjs/common';
+import { UpdateScheduleItemDto } from './dto/update-schedule-item.dto';
 import { DatabaseService } from '../database/database.service';
 
 const weekdayMap: Record<Weekday, EngineWeekday> = {
@@ -125,6 +128,75 @@ export class SchedulesService {
       });
 
       return schedule;
+    });
+  }
+
+  async validate(classGroupId: string) {
+    const schedule = await this.getByClassGroup(classGroupId);
+    const classGroup = await this.loadClassGroup(classGroupId);
+
+    if (!schedule) {
+      throw new NotFoundException('Cronograma não encontrado.');
+    }
+
+    return validateSchedule({
+      endDateLimit: classGroup.endDateLimit?.toISOString().slice(0, 10),
+      restrictions: classGroup.academicCalendar.events.map((event) => ({
+        startDate: event.startDate.toISOString().slice(0, 10),
+        endDate: event.endDate.toISOString().slice(0, 10),
+        blocksAcademicActivities: event.blocksAcademicActivities,
+        reason: event.title,
+      })),
+      items: schedule.items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        type: item.type,
+        startDate: item.startDate.toISOString().slice(0, 10),
+        endDate: item.endDate.toISOString().slice(0, 10),
+        avaEndDate: item.avaEndDate?.toISOString().slice(0, 10),
+        totalHours: item.totalHours,
+        expectedHours: item.curricularUnit?.totalHours,
+        requiredMeetingCount: item.curricularUnit?.meetingCount,
+        meetings: item.meetings.map((meeting) => ({
+          date: meeting.date.toISOString().slice(0, 10),
+          startTime: meeting.startTime,
+          endTime: meeting.endTime,
+        })),
+      })),
+    });
+  }
+
+  async updateItem(id: string, data: UpdateScheduleItemDto) {
+    const startDate = new Date(`${data.startDate}T12:00:00.000Z`);
+    const endDate = new Date(`${data.endDate}T12:00:00.000Z`);
+    const issues = validateDateOrder(startDate, endDate);
+
+    if (issues.length > 0) {
+      throw new BadRequestException(issues[0]?.message);
+    }
+
+    if (data.avaEndDate) {
+      const avaDate = new Date(`${data.avaEndDate}T12:00:00.000Z`);
+      if (avaDate.getTime() < endDate.getTime()) {
+        throw new BadRequestException('O término do AVA não pode ser anterior ao término do item.');
+      }
+    }
+
+    return this.database.scheduleItem.update({
+      where: { id },
+      data: {
+        startDate,
+        endDate,
+        avaEndDate: data.avaEndDate
+          ? new Date(`${data.avaEndDate}T12:00:00.000Z`)
+          : null,
+        manuallyAdjusted: true,
+        adjustmentReason: data.adjustmentReason,
+      },
+      include: {
+        curricularUnit: true,
+        meetings: true,
+      },
     });
   }
 

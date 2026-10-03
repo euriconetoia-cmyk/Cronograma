@@ -345,3 +345,22 @@ textarea { width:100%; border:1px solid #d6dbe2; border-radius:8px; padding:10px
     flex-direction: column;
   }
 }
+
+
+.validation-panel {
+  margin: 22px 0;
+  padding: 20px;
+  border: 1px solid #e2e5e9;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.validation-panel h2 {
+  margin-top: 0;
+}
+
+.validation-ok {
+  margin: 0;
+  color: #147d53;
+  font-weight: 700;
+}

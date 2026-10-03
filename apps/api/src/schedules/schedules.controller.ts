@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { UpdateScheduleItemDto } from './dto/update-schedule-item.dto';
 import { SchedulesService } from './schedules.service';
 
 @Controller('schedules')
@@ -13,6 +14,16 @@ export class SchedulesController {
   @Post('class/:classGroupId/generate')
   generate(@Param('classGroupId') classGroupId: string) {
     return this.schedulesService.generateAndSave(classGroupId);
+  }
+
+  @Get('class/:classGroupId/validate')
+  validate(@Param('classGroupId') classGroupId: string) {
+    return this.schedulesService.validate(classGroupId);
+  }
+
+  @Patch('items/:id')
+  updateItem(@Param('id') id: string, @Body() data: UpdateScheduleItemDto) {
+    return this.schedulesService.updateItem(id, data);
   }
 
   @Get('class/:classGroupId')

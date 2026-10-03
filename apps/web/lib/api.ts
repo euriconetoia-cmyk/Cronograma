@@ -25,3 +25,19 @@ export async function apiPost<T>(path: string, data: unknown): Promise<T> {
 
   return response.json() as Promise<T>;
 }
+
+
+export async function apiPatch<T>(path: string, data: unknown): Promise<T> {
+  const response = await fetch(`${API_URL}/api${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.message ?? 'Não foi possível atualizar os dados.');
+  }
+
+  return response.json() as Promise<T>;
+}
