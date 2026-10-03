@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -10,6 +11,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { ImportExportService } from './import-export.service';
+import { ApplyScheduleImportDto } from './dto/apply-schedule-import.dto';
 
 @Controller('import-export')
 export class ImportExportController {
@@ -44,6 +46,11 @@ export class ImportExportController {
       `attachment; filename="cronograma-${classGroupId}.csv"`,
     );
     response.send('\ufeff' + csv);
+  }
+
+  @Post('apply')
+  apply(@Body() data: ApplyScheduleImportDto) {
+    return this.service.applyScheduleImport(data);
   }
 
   @Post('preview')
