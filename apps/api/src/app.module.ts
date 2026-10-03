@@ -6,6 +6,8 @@ import { ModalitiesModule } from './modalities/modalities.module';
 import { CoursesModule } from './courses/courses.module';
 import { CurriculumModule } from './curriculum/curriculum.module';
 import { CalendarsModule } from './calendars/calendars.module';
+import { PeopleModule } from './people/people.module';
+import { ClassesModule } from './classes/classes.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { CalendarsModule } from './calendars/calendars.module';
     CoursesModule,
     CurriculumModule,
     CalendarsModule,
+    PeopleModule,
+    ClassesModule,
   ],
   controllers: [HealthController],
 })
