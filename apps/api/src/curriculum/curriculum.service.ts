@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { validateCurricularUnitHours } from '@cronograma/validation-engine';
 import { DatabaseService } from '../database/database.service';
 import { CreateCourseVersionDto } from './dto/create-course-version.dto';
 import { CreateModuleDto } from './dto/create-module.dto';
@@ -34,25 +35,12 @@ export class CurriculumService {
     return this.database.courseModule.create({ data });
   }
 
-  async createCurricularUnit(data: CreateCurricularUnitDto) {
-    const distributedHours =
-      (data.inPersonHours ?? 0) +
-      (data.eadHours ?? 0);
+  createCurricularUnit(data: CreateCurricularUnitDto) {
+    const issues = validateCurricularUnitHours(data);
+    const blockingIssue = issues.find((issue) => issue.severity === 'ERROR');
 
-    if (distributedHours > data.totalHours) {
-      throw new BadRequestException(
-        'A soma das cargas presencial e EaD não pode superar a carga horária total da UC.',
-      );
-    }
-
-    const synchronousDistribution =
-      (data.synchronousHours ?? 0) +
-      (data.asynchronousHours ?? 0);
-
-    if (synchronousDistribution > data.totalHours) {
-      throw new BadRequestException(
-        'A soma das cargas síncrona e assíncrona não pode superar a carga horária total da UC.',
-      );
+    if (blockingIssue) {
+      throw new BadRequestException(blockingIssue.message);
     }
 
     return this.database.curricularUnit.create({ data });
