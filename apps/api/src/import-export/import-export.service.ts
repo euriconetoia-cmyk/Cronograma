@@ -1,6 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import ExcelJS from 'exceljs';
+import { MeetingType, ScheduleItemType } from '@cronograma/database';
 import { DatabaseService } from '../database/database.service';
+import { VersioningService } from '../schedules/versioning.service';
+import { ApplyScheduleImportDto } from './dto/apply-schedule-import.dto';
 import type {
   ImportColumnMapping,
   ImportPreview,
@@ -10,7 +13,10 @@ import type {
 
 @Injectable()
 export class ImportExportService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly versioning: VersioningService,
+  ) {}
 
   async exportScheduleExcel(classGroupId: string) {
     const schedule = await this.loadSchedule(classGroupId);
@@ -179,6 +185,209 @@ export class ImportExportService {
     };
   }
 
+  async applyScheduleImport(data: ApplyScheduleImportDto) {
+    if (data.rows.length === 0) {
+      throw new BadRequestException('Nenhuma linha válida foi enviada para importação.');
+    }
+
+    const classGroup = await this.database.classGroup.findUnique({
+      where: { id: data.classGroupId },
+      include: {
+        courseVersion: {
+          include: {
+            modules: {
+              include: {
+                curricularUnits: true,
+              },
+            },
+          },
+        },
+        schedule: true,
+      },
+    });
+
+    if (!classGroup) {
+      throw new NotFoundException('Turma não encontrada.');
+    }
+
+    const units = classGroup.courseVersion.modules.flatMap((module) => module.curricularUnits);
+    const unitByName = new Map(
+      units.map((unit) => [this.normalizeHeader(unit.name), unit]),
+    );
+
+    const grouped = new Map<string, typeof data.rows>();
+    const unmatched: string[] = [];
+
+    for (const row of data.rows) {
+      const unit = unitByName.get(this.normalizeHeader(row.curricularUnit));
+      if (!unit) {
+        unmatched.push(row.curricularUnit);
+        continue;
+      }
+
+      const list = grouped.get(unit.id) ?? [];
+      list.push(row);
+      grouped.set(unit.id, list);
+    }
+
+    if (unmatched.length > 0) {
+      throw new BadRequestException(
+        `Existem UCs sem correspondência na matriz: ${[...new Set(unmatched)].join(', ')}.`,
+      );
+    }
+
+    if (classGroup.schedule) {
+      await this.versioning.createVersion(
+        classGroup.schedule.id,
+        data.actorName,
+        'Snapshot anterior à importação de planilha',
+      );
+    }
+
+    const orderedGroups = [...grouped.entries()]
+      .map(([unitId, rows]) => ({
+        unit: units.find((unit) => unit.id === unitId)!,
+        rows,
+      }))
+      .sort((a, b) => a.unit.order - b.unit.order);
+
+    const schedule = await this.database.$transaction(async (tx) => {
+      let scheduleId = classGroup.schedule?.id;
+
+      if (scheduleId) {
+        await tx.scheduleItem.deleteMany({
+          where: { scheduleId },
+        });
+      } else {
+        const created = await tx.schedule.create({
+          data: {
+            classGroupId: classGroup.id,
+          },
+        });
+        scheduleId = created.id;
+      }
+
+      let order = 1;
+      const importedItems = [];
+
+      for (const group of orderedGroups) {
+        const first = group.rows[0]!;
+        const last = group.rows[group.rows.length - 1]!;
+        const startDate = this.parseDateInput(first.startDate);
+        const endDate = this.parseDateInput(last.endDate || first.endDate);
+        const avaEndDate = first.avaEndDate
+          ? this.parseDateInput(first.avaEndDate)
+          : null;
+
+        const meetings = group.rows
+          .filter(
+            (row) =>
+              row.meetingNumber &&
+              row.meetingDate &&
+              row.meetingStartTime &&
+              row.meetingEndTime,
+          )
+          .map((row) => ({
+            number: row.meetingNumber!,
+            type: MeetingType.PRESENTIAL,
+            date: this.parseDateInput(row.meetingDate!),
+            startTime: row.meetingStartTime!,
+            endTime: row.meetingEndTime!,
+            hours: this.calculateHours(row.meetingStartTime!, row.meetingEndTime!),
+          }));
+
+        importedItems.push({
+          scheduleId,
+          curricularUnitId: group.unit.id,
+          type: ScheduleItemType.CURRICULAR_UNIT,
+          title: group.unit.name,
+          order,
+          startDate,
+          endDate,
+          avaEndDate,
+          totalHours: first.totalHours ?? group.unit.totalHours,
+          manuallyAdjusted: true,
+          adjustmentReason: 'Importado de planilha',
+          meetings: {
+            create: meetings,
+          },
+        });
+
+        order += 1;
+      }
+
+      await tx.scheduleItem.createMany({
+        data: importedItems.map(({ meetings: _meetings, ...item }) => item),
+      });
+
+      for (const item of importedItems) {
+        if (item.meetings.create.length === 0) continue;
+
+        const createdItem = await tx.scheduleItem.findFirst({
+          where: {
+            scheduleId,
+            curricularUnitId: item.curricularUnitId,
+            order: item.order,
+          },
+        });
+
+        if (createdItem) {
+          await tx.meeting.createMany({
+            data: item.meetings.create.map((meeting) => ({
+              scheduleItemId: createdItem.id,
+              ...meeting,
+            })),
+          });
+        }
+      }
+
+      const dates = importedItems.flatMap((item) => [item.startDate, item.endDate]);
+      const startDate = new Date(Math.min(...dates.map((date) => date.getTime())));
+      const endDate = new Date(Math.max(...dates.map((date) => date.getTime())));
+
+      return tx.schedule.update({
+        where: { id: scheduleId },
+        data: {
+          status: 'REVIEW',
+          generatedAt: new Date(),
+          startDate,
+          endDate,
+        },
+        include: {
+          items: {
+            include: {
+              meetings: true,
+            },
+            orderBy: { order: 'asc' },
+          },
+        },
+      });
+    });
+
+    await this.versioning.createVersion(
+      schedule.id,
+      data.actorName,
+      'Cronograma importado de planilha',
+    );
+    await this.versioning.audit(
+      'Schedule',
+      schedule.id,
+      'IMPORT_EXCEL',
+      data.actorName,
+      'Importação confirmada pelo usuário',
+      {
+        importedRows: data.rows.length,
+        importedUnits: grouped.size,
+      },
+    );
+
+    return {
+      schedule,
+      importedRows: data.rows.length,
+      importedUnits: grouped.size,
+    };
+  }
+
   private detectTemplate(headers: string[]): ImportTemplateType {
     const normalized = headers.map((header) => this.normalizeHeader(header));
 
@@ -225,20 +434,70 @@ export class ImportExportService {
     const get = (field?: string) => (field ? raw[field] ?? null : null);
 
     return {
-      course: get(mapping.course),
-      module: get(mapping.module),
-      curricularUnit: get(mapping.curricularUnit),
-      totalHours: get(mapping.totalHours),
-      inPersonHours: get(mapping.inPersonHours),
-      eadHours: get(mapping.eadHours),
-      startDate: get(mapping.startDate),
-      endDate: get(mapping.endDate),
-      avaEndDate: get(mapping.avaEndDate),
-      classCode: get(mapping.classCode),
-      tutor: get(mapping.tutor),
-      monitor: get(mapping.monitor),
-      recovery: get(mapping.recovery),
+      course: this.asText(get(mapping.course)),
+      module: this.asText(get(mapping.module)),
+      curricularUnit: this.asText(get(mapping.curricularUnit)),
+      totalHours: this.asNumber(get(mapping.totalHours)),
+      inPersonHours: this.asNumber(get(mapping.inPersonHours)),
+      eadHours: this.asNumber(get(mapping.eadHours)),
+      startDate: this.asIsoDate(get(mapping.startDate)),
+      endDate: this.asIsoDate(get(mapping.endDate)),
+      avaEndDate: this.asIsoDate(get(mapping.avaEndDate)),
+      classCode: this.asText(get(mapping.classCode)),
+      tutor: this.asText(get(mapping.tutor)),
+      monitor: this.asText(get(mapping.monitor)),
+      meetingNumber: this.asNumber(get(mapping.meetingNumber)),
+      meetingDate: this.asIsoDate(get(mapping.meetingDate)),
+      meetingStartTime: this.asTime(get(mapping.meetingStartTime)),
+      meetingEndTime: this.asTime(get(mapping.meetingEndTime)),
+      recovery: this.asText(get(mapping.recovery)),
     };
+  }
+
+  private asText(value: unknown) {
+    if (value === null || value === undefined || value === '') return null;
+    return String(value).trim();
+  }
+
+  private asNumber(value: unknown) {
+    if (typeof value === 'number') return value;
+    if (value === null || value === undefined || value === '') return null;
+    const normalized = Number(String(value).replace(',', '.'));
+    return Number.isFinite(normalized) ? normalized : null;
+  }
+
+  private asIsoDate(value: unknown) {
+    if (!value) return null;
+    if (value instanceof Date) return value.toISOString().slice(0, 10);
+    const text = String(value).trim();
+    const br = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (br) return `${br[3]}-${br[2]}-${br[1]}`;
+    const iso = text.match(/^\d{4}-\d{2}-\d{2}/);
+    return iso ? iso[0] : text;
+  }
+
+  private asTime(value: unknown) {
+    if (!value) return null;
+    if (value instanceof Date) {
+      return `${String(value.getUTCHours()).padStart(2, '0')}:${String(value.getUTCMinutes()).padStart(2, '0')}`;
+    }
+    const text = String(value).trim();
+    const match = text.match(/(\d{1,2}):(\d{2})/);
+    return match ? `${String(Number(match[1])).padStart(2, '0')}:${match[2]}` : text;
+  }
+
+  private parseDateInput(value: string) {
+    const iso = this.asIsoDate(value);
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+      throw new BadRequestException(`Data inválida na importação: ${value}`);
+    }
+    return new Date(`${iso}T12:00:00.000Z`);
+  }
+
+  private calculateHours(startTime: string, endTime: string) {
+    const [startH = 0, startM = 0] = startTime.split(':').map(Number);
+    const [endH = 0, endM = 0] = endTime.split(':').map(Number);
+    return Math.max(1, Math.round(((endH * 60 + endM) - (startH * 60 + startM)) / 60));
   }
 
   private findHeaderRow(sheet: ExcelJS.Worksheet) {
