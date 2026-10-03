@@ -226,6 +226,8 @@ export interface ResourceMeeting {
   endTime: string;
   instructorId?: string | null;
   roomId?: string | null;
+  roomCapacity?: number | null;
+  expectedStudents?: number | null;
   title?: string;
 }
 
@@ -301,6 +303,34 @@ export function validateResourceConflicts(
           message: `Instrutor está fora da disponibilidade cadastrada em ${current.date}.`,
         });
       }
+    }
+
+    if (!current.instructorId) {
+      issues.push({
+        code: 'INSTRUCTOR_NOT_ASSIGNED',
+        severity: 'WARNING',
+        message: `Encontro de "${current.title ?? 'atividade'}" não possui instrutor definido.`,
+      });
+    }
+
+    if (!current.roomId) {
+      issues.push({
+        code: 'ROOM_NOT_ASSIGNED',
+        severity: 'WARNING',
+        message: `Encontro de "${current.title ?? 'atividade'}" não possui sala ou laboratório definido.`,
+      });
+    }
+
+    if (
+      current.roomCapacity &&
+      current.expectedStudents &&
+      current.roomCapacity < current.expectedStudents
+    ) {
+      issues.push({
+        code: 'ROOM_CAPACITY_INSUFFICIENT',
+        severity: 'ERROR',
+        message: `A capacidade do recurso é inferior aos ${current.expectedStudents} alunos previstos.`,
+      });
     }
 
     if (current.roomId) {
