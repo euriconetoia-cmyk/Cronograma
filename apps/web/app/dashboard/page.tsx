@@ -14,6 +14,8 @@ type DashboardData = {
     rooms: number;
     people: number;
     meetings: number;
+    conflicts: number;
+    criticalConflicts: number;
   };
   classesByStatus: Record<string, number>;
   classesByModality: Record<string, number>;
@@ -81,6 +83,8 @@ export default function DashboardPage() {
             <Metric label="Encontros" value={data.totals.meetings} />
             <Metric label="Pessoas" value={data.totals.people} />
             <Metric label="Salas/Labs" value={data.totals.rooms} />
+            <Metric label="Conflitos" value={data.totals.conflicts} />
+            <Metric label="Críticos" value={data.totals.criticalConflicts} />
           </section>
 
           <section className="dashboard-sections">
