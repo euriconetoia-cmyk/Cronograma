@@ -73,7 +73,10 @@ export default function ClassDetailPage() {
           <h1>{classGroup.code}</h1>
           <p className="lead">{classGroup.course.name} | Matriz {classGroup.courseVersion.name}</p>
         </div>
-        <Link href="/turmas">Voltar às turmas</Link>
+        <div className="header-actions">
+          <Link href={`/turmas/${id}/cronograma`}>Gerar cronograma</Link>
+          <Link href="/turmas">Voltar às turmas</Link>
+        </div>
       </header>
 
       <section className="calendar-summary">
