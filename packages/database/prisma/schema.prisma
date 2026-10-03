@@ -87,6 +87,15 @@ enum MeetingType {
   OTHER
 }
 
+enum RoomType {
+  CLASSROOM
+  COMPUTER_LAB
+  NETWORK_LAB
+  ELECTRICAL_LAB
+  WORKSHOP
+  OTHER
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -109,6 +118,7 @@ model Unit {
   courses   Course[]
   calendars AcademicCalendar[]
   classGroups ClassGroup[]
+  rooms       Room[]
 }
 
 model Modality {
@@ -244,6 +254,8 @@ model Person {
   registry  String?
   active    Boolean            @default(true)
   classLinks ClassGroupPerson[]
+  availabilities PersonAvailability[]
+  meetings     Meeting[]       @relation("MeetingInstructor")
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
 }
@@ -357,6 +369,10 @@ model Meeting {
   startTime      String
   endTime        String
   hours          Int
+  instructorId   String?
+  instructor     Person?       @relation("MeetingInstructor", fields: [instructorId], references: [id])
+  roomId         String?
+  room           Room?         @relation(fields: [roomId], references: [id])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -398,4 +414,35 @@ model AuditLog {
   createdAt   DateTime @default(now())
 
   @@index([entityType, entityId, createdAt])
+}
+
+
+model PersonAvailability {
+  id        String   @id @default(cuid())
+  personId  String
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  weekday   Weekday
+  startTime String
+  endTime   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([personId, weekday])
+}
+
+model Room {
+  id        String    @id @default(cuid())
+  name      String
+  code      String
+  type      RoomType
+  capacity  Int?
+  active    Boolean   @default(true)
+  unitId    String
+  unit      Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  meetings  Meeting[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([unitId, code])
 }
