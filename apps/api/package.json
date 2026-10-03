@@ -8,9 +8,12 @@
     "test": "echo \"api: testes serão adicionados por módulo\""
   },
   "dependencies": {
+    "@cronograma/database": "workspace:*",
     "@nestjs/common": "latest",
     "@nestjs/core": "latest",
     "@nestjs/platform-express": "latest",
+    "class-transformer": "latest",
+    "class-validator": "latest",
     "reflect-metadata": "latest",
     "rxjs": "latest"
   },
