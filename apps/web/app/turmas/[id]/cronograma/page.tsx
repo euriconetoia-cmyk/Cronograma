@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { apiGet, apiPost } from '../../../../lib/api';
+import { API_URL, apiGet, apiPost } from '../../../../lib/api';
 
 type Meeting = {
   number: number;
@@ -98,6 +98,8 @@ export default function SchedulePreviewPage() {
           )}
 
           <div className="schedule-actions">
+            <a href={`${API_URL}/api/import-export/schedules/${id}.xlsx`}>Exportar Excel</a>
+            <a href={`${API_URL}/api/import-export/schedules/${id}.csv`}>Exportar CSV</a>
             <Link href={`/turmas/${id}/cronograma/editor`}>Abrir editor</Link>
             <button type="button" onClick={() => void load()}>Recalcular prévia</button>
             <button type="button" onClick={() => void save()} disabled={saving}>
