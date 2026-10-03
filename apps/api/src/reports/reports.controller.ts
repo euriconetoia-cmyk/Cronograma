@@ -24,6 +24,17 @@ export class ReportsController {
     return this.reportsService.annualPlan(Number(year), unitId);
   }
 
+  @Get('conflicts')
+  conflicts(
+    @Query('year') year?: string,
+    @Query('unitId') unitId?: string,
+  ) {
+    return this.reportsService.conflicts(
+      year ? Number(year) : undefined,
+      unitId,
+    );
+  }
+
   @Get('workload')
   workload(
     @Query('year') year?: string,
