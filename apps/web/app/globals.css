@@ -252,3 +252,96 @@ textarea { width:100%; border:1px solid #d6dbe2; border-radius:8px; padding:10px
 .weekday-card > label:first-child input {
   width: auto;
 }
+
+
+.header-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.schedule-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin: 20px 0;
+}
+
+.schedule-list {
+  display: grid;
+  gap: 16px;
+}
+
+.schedule-item-card {
+  padding: 22px;
+  border: 1px solid #e2e5e9;
+  border-radius: 16px;
+  background: white;
+}
+
+.schedule-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.schedule-item-head span,
+.schedule-dates span {
+  display: block;
+  color: #64748b;
+  font-size: .78rem;
+  margin-bottom: 4px;
+}
+
+.schedule-dates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.schedule-dates > div {
+  padding: 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.meeting-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.meeting-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr .8fr;
+  gap: 12px;
+  padding: 10px 12px;
+  border-top: 1px solid #e7e9ee;
+}
+
+.warning-box {
+  padding: 18px 22px;
+  margin: 20px 0;
+  border: 1px solid #f3cf74;
+  border-radius: 14px;
+  background: #fff9e8;
+}
+
+.warning-box h2 {
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  .schedule-dates,
+  .meeting-row {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-actions {
+    justify-content: stretch;
+    flex-direction: column;
+  }
+}
