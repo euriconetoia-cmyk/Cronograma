@@ -1,9 +1,11 @@
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface CalendarRestriction {
-  date: string;
+  startDate: string;
+  endDate: string;
   blocksAcademicActivities: boolean;
   reason?: string;
+  type?: string;
 }
 
 export interface AcademicDayContext {
@@ -14,4 +16,5 @@ export interface AcademicDayContext {
 export interface AcademicDayDecision {
   allowed: boolean;
   reason: 'ALLOWED' | 'WEEKDAY_NOT_ALLOWED' | 'CALENDAR_BLOCKED';
+  restriction?: CalendarRestriction;
 }
