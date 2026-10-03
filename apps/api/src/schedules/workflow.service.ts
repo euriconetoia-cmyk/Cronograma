@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ApprovalDecision, ScheduleStatus } from '@cronograma/database';
-import { validateSchedule } from '@cronograma/validation-engine';
+import { validateResourceConflicts, validateSchedule } from '@cronograma/validation-engine';
 import { DatabaseService } from '../database/database.service';
 import { VersioningService } from './versioning.service';
 
@@ -198,7 +198,11 @@ export class WorkflowService {
         items: {
           include: {
             curricularUnit: true,
-            meetings: true,
+            meetings: {
+              include: {
+                room: true,
+              },
+            },
           },
           orderBy: { order: 'asc' },
         },
@@ -241,7 +245,60 @@ export class WorkflowService {
       })),
     });
 
-    const errors = issues.filter((issue) => issue.severity === 'ERROR');
+    const resourceMeetings = schedule.items.flatMap((item) =>
+      item.meetings.map((meeting) => ({
+        id: meeting.id,
+        title: item.title,
+        date: meeting.date.toISOString().slice(0, 10),
+        startTime: meeting.startTime,
+        endTime: meeting.endTime,
+        instructorId: meeting.instructorId,
+        roomId: meeting.roomId,
+        roomCapacity: meeting.room?.capacity,
+        expectedStudents: schedule.classGroup.expectedStudents,
+      })),
+    );
+
+    const instructorIds = [
+      ...new Set(
+        resourceMeetings
+          .map((meeting) => meeting.instructorId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
+    const availabilities = instructorIds.length
+      ? await this.database.personAvailability.findMany({
+          where: {
+            personId: { in: instructorIds },
+            active: true,
+          },
+        })
+      : [];
+
+    const weekdayNumber = {
+      SUNDAY: 0,
+      MONDAY: 1,
+      TUESDAY: 2,
+      WEDNESDAY: 3,
+      THURSDAY: 4,
+      FRIDAY: 5,
+      SATURDAY: 6,
+    } as const;
+
+    const resourceIssues = validateResourceConflicts(
+      resourceMeetings,
+      availabilities.map((item) => ({
+        personId: item.personId,
+        weekday: weekdayNumber[item.weekday],
+        startTime: item.startTime,
+        endTime: item.endTime,
+      })),
+    );
+
+    const errors = [...issues, ...resourceIssues].filter(
+      (issue) => issue.severity === 'ERROR',
+    );
     if (errors.length > 0) {
       throw new BadRequestException(
         `O cronograma possui ${errors.length} erro(s) de validação e não pode avançar para aprovação.`,
