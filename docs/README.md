@@ -14,6 +14,7 @@ Este diretório concentra a documentação oficial do sistema de planejamento ac
 8. [UX e fluxos](08-ux-e-fluxos.md)
 9. [Roadmap e backlog](09-roadmap-e-backlog.md)
 10. [Testes e qualidade](10-testes-e-qualidade.md)
+11. [Ambiente de desenvolvimento](11-ambiente-desenvolvimento.md)
 
 ## Princípios do projeto
 
