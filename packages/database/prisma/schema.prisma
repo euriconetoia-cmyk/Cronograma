@@ -29,6 +29,31 @@ enum CalendarEventType {
   INSTITUTIONAL_EVENT
 }
 
+enum Weekday {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+enum ClassGroupStatus {
+  DRAFT
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ClassGroupPersonRole {
+  INSTRUCTOR
+  TUTOR
+  MONITOR
+  PLANNER
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -50,6 +75,7 @@ model Unit {
 
   courses   Course[]
   calendars AcademicCalendar[]
+  classGroups ClassGroup[]
 }
 
 model Modality {
@@ -68,6 +94,7 @@ model Modality {
   updatedAt                DateTime       @updatedAt
 
   courses                  Course[]
+  classGroups              ClassGroup[]
 }
 
 model Course {
@@ -84,6 +111,7 @@ model Course {
   versions          CourseVersion[]
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
+  classGroups       ClassGroup[]
 }
 
 model CourseVersion {
@@ -151,6 +179,7 @@ model AcademicCalendar {
   unit      Unit            @relation(fields: [unitId], references: [id], onDelete: Cascade)
   active    Boolean         @default(true)
   events    CalendarEvent[]
+  classGroups ClassGroup[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
@@ -171,4 +200,75 @@ model CalendarEvent {
   updatedAt                DateTime          @updatedAt
 
   @@index([calendarId, startDate, endDate])
+}
+
+
+model Person {
+  id        String             @id @default(cuid())
+  name      String
+  email     String?
+  registry  String?
+  active    Boolean            @default(true)
+  classLinks ClassGroupPerson[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+model ClassGroup {
+  id                         String                  @id @default(cuid())
+  code                       String                  @unique
+  expectedStudents           Int?
+  startDate                  DateTime
+  endDateLimit               DateTime?
+  status                     ClassGroupStatus        @default(DRAFT)
+  courseId                   String
+  courseVersionId            String
+  unitId                     String
+  modalityId                 String
+  academicCalendarId         String
+  generateRecovery           Boolean                 @default(false)
+  createEnrollmentPeriod     Boolean                 @default(false)
+  createInauguralClass       Boolean                 @default(false)
+  avaExtraDays               Int                     @default(0)
+  allowSaturday              Boolean                 @default(false)
+  allowSunday                Boolean                 @default(false)
+  allowOverlap               Boolean                 @default(false)
+  allowNextUcDuringRecovery  Boolean                 @default(false)
+  observations               String?
+  course                     Course                  @relation(fields: [courseId], references: [id])
+  courseVersion              CourseVersion           @relation(fields: [courseVersionId], references: [id])
+  unit                       Unit                    @relation(fields: [unitId], references: [id])
+  modality                   Modality                @relation(fields: [modalityId], references: [id])
+  academicCalendar           AcademicCalendar        @relation(fields: [academicCalendarId], references: [id])
+  scheduleRules              ClassScheduleRule[]
+  people                     ClassGroupPerson[]
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
+}
+
+model ClassScheduleRule {
+  id              String     @id @default(cuid())
+  classGroupId    String
+  classGroup      ClassGroup @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+  weekday         Weekday
+  startTime       String
+  endTime         String
+  maxDailyHours   Int?
+  enabled         Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([classGroupId, weekday])
+}
+
+model ClassGroupPerson {
+  id           String               @id @default(cuid())
+  classGroupId String
+  personId     String
+  role         ClassGroupPersonRole
+  classGroup   ClassGroup           @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+  person       Person               @relation(fields: [personId], references: [id])
+  createdAt    DateTime             @default(now())
+
+  @@unique([classGroupId, personId, role])
 }
