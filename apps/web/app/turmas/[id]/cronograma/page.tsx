@@ -98,6 +98,7 @@ export default function SchedulePreviewPage() {
           )}
 
           <div className="schedule-actions">
+            <Link href={`/turmas/${id}/cronograma/editor`}>Abrir editor</Link>
             <button type="button" onClick={() => void load()}>Recalcular prévia</button>
             <button type="button" onClick={() => void save()} disabled={saving}>
               {saving ? 'Salvando...' : 'Gerar e salvar cronograma'}
