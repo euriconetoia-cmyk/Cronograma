@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   MeetingType,
   ScheduleItemType,
@@ -6,9 +6,9 @@ import {
 } from '@cronograma/database';
 import { generateSchedule, type Weekday as EngineWeekday } from '@cronograma/schedule-engine';
 import { validateDateOrder, validateSchedule } from '@cronograma/validation-engine';
-import { BadRequestException } from '@nestjs/common';
-import { UpdateScheduleItemDto } from './dto/update-schedule-item.dto';
 import { DatabaseService } from '../database/database.service';
+import { UpdateScheduleItemDto } from './dto/update-schedule-item.dto';
+import { VersioningService } from './versioning.service';
 
 const weekdayMap: Record<Weekday, EngineWeekday> = {
   SUNDAY: 0,
@@ -22,7 +22,10 @@ const weekdayMap: Record<Weekday, EngineWeekday> = {
 
 @Injectable()
 export class SchedulesService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly versioning: VersioningService,
+  ) {}
 
   async preview(classGroupId: string) {
     const classGroup = await this.loadClassGroup(classGroupId);
@@ -68,67 +71,82 @@ export class SchedulesService {
     });
   }
 
-  async generateAndSave(classGroupId: string) {
+  async generateAndSave(classGroupId: string, actorName = 'Sistema') {
     const preview = await this.preview(classGroupId);
+    const current = await this.database.schedule.findUnique({
+      where: { classGroupId },
+    });
 
-    return this.database.$transaction(async (tx) => {
-      await tx.schedule.deleteMany({
-        where: { classGroupId },
-      });
+    if (current) {
+      await this.versioning.createVersion(
+        current.id,
+        actorName,
+        'Snapshot anterior à regeneração',
+      );
+    }
 
-      const schedule = await tx.schedule.create({
+    const schedule = await this.database.$transaction(async (tx) => {
+      if (current) {
+        await tx.scheduleItem.deleteMany({
+          where: { scheduleId: current.id },
+        });
+
+        return tx.schedule.update({
+          where: { id: current.id },
+          data: {
+            status: 'GENERATED',
+            generatedAt: new Date(),
+            startDate: new Date(`${preview.startDate}T12:00:00.000Z`),
+            endDate: new Date(`${preview.endDate}T12:00:00.000Z`),
+            items: {
+              create: this.toScheduleItems(preview.items),
+            },
+          },
+          include: {
+            items: {
+              include: { meetings: true },
+              orderBy: { order: 'asc' },
+            },
+          },
+        });
+      }
+
+      return tx.schedule.create({
         data: {
           classGroupId,
           startDate: new Date(`${preview.startDate}T12:00:00.000Z`),
           endDate: new Date(`${preview.endDate}T12:00:00.000Z`),
           items: {
-            create: preview.items.map((item) => ({
-              curricularUnitId: item.curricularUnitId,
-              type:
-                item.type === 'CURRICULAR_UNIT'
-                  ? ScheduleItemType.CURRICULAR_UNIT
-                  : ScheduleItemType.RECOVERY,
-              title: item.title,
-              order: item.order,
-              startDate: new Date(`${item.startDate}T12:00:00.000Z`),
-              endDate: new Date(`${item.endDate}T12:00:00.000Z`),
-              avaEndDate: item.avaEndDate
-                ? new Date(`${item.avaEndDate}T12:00:00.000Z`)
-                : undefined,
-              totalHours: item.totalHours,
-              meetings: {
-                create: item.meetings.map((meeting) => ({
-                  number: meeting.number,
-                  type:
-                    meeting.type === 'WEB_CLASS'
-                      ? MeetingType.WEB_CLASS
-                      : MeetingType.PRESENTIAL,
-                  date: new Date(`${meeting.date}T12:00:00.000Z`),
-                  startTime: meeting.startTime,
-                  endTime: meeting.endTime,
-                  hours: meeting.hours,
-                })),
-              },
-            })),
+            create: this.toScheduleItems(preview.items),
           },
         },
         include: {
           items: {
-            include: {
-              meetings: true,
-            },
+            include: { meetings: true },
             orderBy: { order: 'asc' },
           },
         },
       });
-
-      await tx.classGroup.update({
-        where: { id: classGroupId },
-        data: { status: 'PLANNED' },
-      });
-
-      return schedule;
     });
+
+    await this.database.classGroup.update({
+      where: { id: classGroupId },
+      data: { status: 'PLANNED' },
+    });
+
+    await this.versioning.createVersion(
+      schedule.id,
+      actorName,
+      current ? 'Cronograma regenerado' : 'Cronograma gerado',
+    );
+    await this.versioning.audit(
+      'Schedule',
+      schedule.id,
+      current ? 'REGENERATE' : 'GENERATE',
+      actorName,
+    );
+
+    return schedule;
   }
 
   async validate(classGroupId: string) {
@@ -167,6 +185,14 @@ export class SchedulesService {
   }
 
   async updateItem(id: string, data: UpdateScheduleItemDto) {
+    const existing = await this.database.scheduleItem.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Item do cronograma não encontrado.');
+    }
+
     const startDate = new Date(`${data.startDate}T12:00:00.000Z`);
     const endDate = new Date(`${data.endDate}T12:00:00.000Z`);
     const issues = validateDateOrder(startDate, endDate);
@@ -178,11 +204,13 @@ export class SchedulesService {
     if (data.avaEndDate) {
       const avaDate = new Date(`${data.avaEndDate}T12:00:00.000Z`);
       if (avaDate.getTime() < endDate.getTime()) {
-        throw new BadRequestException('O término do AVA não pode ser anterior ao término do item.');
+        throw new BadRequestException(
+          'O término do AVA não pode ser anterior ao término do item.',
+        );
       }
     }
 
-    return this.database.scheduleItem.update({
+    const updated = await this.database.scheduleItem.update({
       where: { id },
       data: {
         startDate,
@@ -198,6 +226,27 @@ export class SchedulesService {
         meetings: true,
       },
     });
+
+    await this.versioning.createVersion(
+      existing.scheduleId,
+      data.actorName,
+      data.adjustmentReason,
+    );
+    await this.versioning.audit(
+      'Schedule',
+      existing.scheduleId,
+      'MANUAL_ADJUSTMENT',
+      data.actorName,
+      data.adjustmentReason,
+      {
+        itemId: id,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        avaEndDate: data.avaEndDate,
+      },
+    );
+
+    return updated;
   }
 
   getByClassGroup(classGroupId: string) {
@@ -215,6 +264,37 @@ export class SchedulesService {
         },
       },
     });
+  }
+
+  private toScheduleItems(items: Awaited<ReturnType<typeof this.preview>>['items']) {
+    return items.map((item) => ({
+      curricularUnitId: item.curricularUnitId,
+      type:
+        item.type === 'CURRICULAR_UNIT'
+          ? ScheduleItemType.CURRICULAR_UNIT
+          : ScheduleItemType.RECOVERY,
+      title: item.title,
+      order: item.order,
+      startDate: new Date(`${item.startDate}T12:00:00.000Z`),
+      endDate: new Date(`${item.endDate}T12:00:00.000Z`),
+      avaEndDate: item.avaEndDate
+        ? new Date(`${item.avaEndDate}T12:00:00.000Z`)
+        : undefined,
+      totalHours: item.totalHours,
+      meetings: {
+        create: item.meetings.map((meeting) => ({
+          number: meeting.number,
+          type:
+            meeting.type === 'WEB_CLASS'
+              ? MeetingType.WEB_CLASS
+              : MeetingType.PRESENTIAL,
+          date: new Date(`${meeting.date}T12:00:00.000Z`),
+          startTime: meeting.startTime,
+          endTime: meeting.endTime,
+          hours: meeting.hours,
+        })),
+      },
+    }));
   }
 
   private async loadClassGroup(id: string) {
