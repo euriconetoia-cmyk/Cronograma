@@ -5,10 +5,11 @@ import {
   Weekday,
 } from '@cronograma/database';
 import { generateSchedule, type Weekday as EngineWeekday } from '@cronograma/schedule-engine';
-import { validateDateOrder, validateSchedule } from '@cronograma/validation-engine';
+import { validateDateOrder, validateResourceConflicts, validateSchedule } from '@cronograma/validation-engine';
 import { DatabaseService } from '../database/database.service';
 import { UpdateScheduleItemDto } from './dto/update-schedule-item.dto';
 import { VersioningService } from './versioning.service';
+import { AssignMeetingResourceDto } from './dto/assign-meeting-resource.dto';
 
 const weekdayMap: Record<Weekday, EngineWeekday> = {
   SUNDAY: 0,
@@ -249,6 +250,141 @@ export class SchedulesService {
     return updated;
   }
 
+  async assignMeetingResource(id: string, data: AssignMeetingResourceDto) {
+    const meeting = await this.database.meeting.findUnique({
+      where: { id },
+      include: {
+        scheduleItem: {
+          include: {
+            schedule: {
+              include: { classGroup: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!meeting) {
+      throw new NotFoundException('Encontro não encontrado.');
+    }
+
+    if (data.roomId) {
+      const room = await this.database.room.findUnique({
+        where: { id: data.roomId },
+      });
+
+      if (!room) {
+        throw new NotFoundException('Sala ou laboratório não encontrado.');
+      }
+
+      if (room.unitId !== meeting.scheduleItem.schedule.classGroup.unitId) {
+        throw new BadRequestException(
+          'A sala ou laboratório não pertence à unidade da turma.',
+        );
+      }
+    }
+
+    if (data.instructorId) {
+      const instructor = await this.database.person.findUnique({
+        where: { id: data.instructorId },
+      });
+
+      if (!instructor) {
+        throw new NotFoundException('Instrutor não encontrado.');
+      }
+    }
+
+    const updated = await this.database.meeting.update({
+      where: { id },
+      data,
+      include: {
+        instructor: true,
+        room: true,
+      },
+    });
+
+    await this.versioning.audit(
+      'Schedule',
+      meeting.scheduleItem.scheduleId,
+      'ASSIGN_MEETING_RESOURCE',
+      'Sistema',
+      undefined,
+      {
+        meetingId: id,
+        instructorId: data.instructorId,
+        roomId: data.roomId,
+      },
+    );
+
+    return updated;
+  }
+
+  async resourceConflicts(classGroupId: string) {
+    const schedule = await this.database.schedule.findUnique({
+      where: { classGroupId },
+      include: {
+        items: {
+          include: {
+            meetings: true,
+          },
+        },
+      },
+    });
+
+    if (!schedule) {
+      throw new NotFoundException('Cronograma não encontrado.');
+    }
+
+    const meetings = schedule.items.flatMap((item) =>
+      item.meetings.map((meeting) => ({
+        id: meeting.id,
+        title: item.title,
+        date: meeting.date.toISOString().slice(0, 10),
+        startTime: meeting.startTime,
+        endTime: meeting.endTime,
+        instructorId: meeting.instructorId,
+        roomId: meeting.roomId,
+      })),
+    );
+
+    const instructorIds = [
+      ...new Set(
+        meetings
+          .map((meeting) => meeting.instructorId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
+    const availabilities = instructorIds.length
+      ? await this.database.personAvailability.findMany({
+          where: {
+            personId: { in: instructorIds },
+            active: true,
+          },
+        })
+      : [];
+
+    const weekdayNumber: Record<Weekday, number> = {
+      SUNDAY: 0,
+      MONDAY: 1,
+      TUESDAY: 2,
+      WEDNESDAY: 3,
+      THURSDAY: 4,
+      FRIDAY: 5,
+      SATURDAY: 6,
+    };
+
+    return validateResourceConflicts(
+      meetings,
+      availabilities.map((item) => ({
+        personId: item.personId,
+        weekday: weekdayNumber[item.weekday],
+        startTime: item.startTime,
+        endTime: item.endTime,
+      })),
+    );
+  }
+
   getByClassGroup(classGroupId: string) {
     return this.database.schedule.findUnique({
       where: { classGroupId },
@@ -257,6 +393,10 @@ export class SchedulesService {
           include: {
             curricularUnit: true,
             meetings: {
+              include: {
+                instructor: true,
+                room: true,
+              },
               orderBy: { number: 'asc' },
             },
           },
