@@ -23,6 +23,10 @@ export default function HomePage() {
           <Link className="card-link" href="/catalogo">
             Acessar Catálogo Acadêmico
           </Link>
+          {' | '}
+          <Link className="card-link" href="/calendarios">
+            Acessar Calendário Acadêmico
+          </Link>
         </p>
       </section>
 
