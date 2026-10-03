@@ -1,0 +1,16 @@
+{
+  "name": "@cronograma/shared",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "echo \"shared: sem testes nesta fase\""
+  },
+  "devDependencies": {
+    "typescript": "latest"
+  }
+}
