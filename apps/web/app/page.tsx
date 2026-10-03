@@ -35,6 +35,10 @@ export default function HomePage() {
           <Link className="card-link" href="/pessoas">
             Acessar Pessoas
           </Link>
+          {' | '}
+          <Link className="card-link" href="/recursos">
+            Acessar Recursos
+          </Link>
         </p>
       </section>
 

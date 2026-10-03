@@ -217,3 +217,143 @@ export function validateSchedule(input: ValidateScheduleInput): ValidationIssue[
 
   return issues;
 }
+
+
+export interface ResourceMeeting {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  instructorId?: string | null;
+  roomId?: string | null;
+  roomCapacity?: number | null;
+  expectedStudents?: number | null;
+  title?: string;
+}
+
+export interface PersonAvailabilityWindow {
+  personId: string;
+  weekday: number;
+  startTime: string;
+  endTime: string;
+}
+
+function timeOverlap(
+  startA: string,
+  endA: string,
+  startB: string,
+  endB: string,
+): boolean {
+  return startA < endB && startB < endA;
+}
+
+function isoWeekday(date: string): number {
+  return new Date(`${date}T12:00:00.000Z`).getUTCDay();
+}
+
+export function validateResourceConflicts(
+  meetings: ResourceMeeting[],
+  availability: PersonAvailabilityWindow[],
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  for (let i = 0; i < meetings.length; i += 1) {
+    const current = meetings[i]!;
+    const sameDay = meetings.filter(
+      (meeting, index) => index !== i && meeting.date === current.date,
+    );
+
+    if (current.instructorId) {
+      const instructorConflict = sameDay.find(
+        (meeting) =>
+          meeting.instructorId === current.instructorId &&
+          timeOverlap(
+            current.startTime,
+            current.endTime,
+            meeting.startTime,
+            meeting.endTime,
+          ),
+      );
+
+      if (instructorConflict && current.id < instructorConflict.id) {
+        issues.push({
+          code: 'INSTRUCTOR_CONFLICT',
+          severity: 'ERROR',
+          message: `Instrutor possui encontros sobrepostos em ${current.date}.`,
+        });
+      }
+
+      const windows = availability.filter(
+        (window) =>
+          window.personId === current.instructorId &&
+          window.weekday === isoWeekday(current.date),
+      );
+
+      if (
+        windows.length > 0 &&
+        !windows.some(
+          (window) =>
+            current.startTime >= window.startTime &&
+            current.endTime <= window.endTime,
+        )
+      ) {
+        issues.push({
+          code: 'INSTRUCTOR_OUTSIDE_AVAILABILITY',
+          severity: 'ERROR',
+          message: `Instrutor está fora da disponibilidade cadastrada em ${current.date}.`,
+        });
+      }
+    }
+
+    if (!current.instructorId) {
+      issues.push({
+        code: 'INSTRUCTOR_NOT_ASSIGNED',
+        severity: 'WARNING',
+        message: `Encontro de "${current.title ?? 'atividade'}" não possui instrutor definido.`,
+      });
+    }
+
+    if (!current.roomId) {
+      issues.push({
+        code: 'ROOM_NOT_ASSIGNED',
+        severity: 'WARNING',
+        message: `Encontro de "${current.title ?? 'atividade'}" não possui sala ou laboratório definido.`,
+      });
+    }
+
+    if (
+      current.roomCapacity &&
+      current.expectedStudents &&
+      current.roomCapacity < current.expectedStudents
+    ) {
+      issues.push({
+        code: 'ROOM_CAPACITY_INSUFFICIENT',
+        severity: 'ERROR',
+        message: `A capacidade do recurso é inferior aos ${current.expectedStudents} alunos previstos.`,
+      });
+    }
+
+    if (current.roomId) {
+      const roomConflict = sameDay.find(
+        (meeting) =>
+          meeting.roomId === current.roomId &&
+          timeOverlap(
+            current.startTime,
+            current.endTime,
+            meeting.startTime,
+            meeting.endTime,
+          ),
+      );
+
+      if (roomConflict && current.id < roomConflict.id) {
+        issues.push({
+          code: 'ROOM_CONFLICT',
+          severity: 'ERROR',
+          message: `Sala ou laboratório possui encontros sobrepostos em ${current.date}.`,
+        });
+      }
+    }
+  }
+
+  return issues;
+}
