@@ -11,6 +11,7 @@ import { ClassesModule } from './classes/classes.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { RoomsModule } from './rooms/rooms.module';
 import { ReportsModule } from './reports/reports.module';
+import { ImportExportModule } from './import-export/import-export.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ReportsModule } from './reports/reports.module';
     SchedulesModule,
     RoomsModule,
     ReportsModule,
+    ImportExportModule,
   ],
   controllers: [HealthController],
 })
