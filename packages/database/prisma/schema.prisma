@@ -54,6 +54,31 @@ enum ClassGroupPersonRole {
   PLANNER
 }
 
+enum ScheduleStatus {
+  GENERATED
+  REVIEW
+  APPROVED
+  PUBLISHED
+}
+
+enum ScheduleItemType {
+  CURRICULAR_UNIT
+  RECOVERY
+  ENROLLMENT
+  INAUGURAL_CLASS
+}
+
+enum MeetingType {
+  PRESENTIAL
+  WEB_CLASS
+  PRACTICE
+  LAB
+  ASSESSMENT
+  RECOVERY
+  INAUGURAL_CLASS
+  OTHER
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -166,6 +191,7 @@ model CurricularUnit {
   module                CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
+  scheduleItems         ScheduleItem[]
 
   @@unique([moduleId, order])
 }
@@ -242,6 +268,7 @@ model ClassGroup {
   academicCalendar           AcademicCalendar        @relation(fields: [academicCalendarId], references: [id])
   scheduleRules              ClassScheduleRule[]
   people                     ClassGroupPerson[]
+  schedule                   Schedule?
   createdAt                  DateTime                @default(now())
   updatedAt                  DateTime                @updatedAt
 }
@@ -271,4 +298,55 @@ model ClassGroupPerson {
   createdAt    DateTime             @default(now())
 
   @@unique([classGroupId, personId, role])
+}
+
+
+model Schedule {
+  id           String          @id @default(cuid())
+  classGroupId String          @unique
+  classGroup   ClassGroup      @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+  status       ScheduleStatus  @default(GENERATED)
+  generatedAt  DateTime        @default(now())
+  startDate    DateTime?
+  endDate      DateTime?
+  items        ScheduleItem[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model ScheduleItem {
+  id               String           @id @default(cuid())
+  scheduleId       String
+  schedule         Schedule         @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  curricularUnitId String?
+  curricularUnit   CurricularUnit?  @relation(fields: [curricularUnitId], references: [id])
+  type             ScheduleItemType
+  title            String
+  order            Int
+  startDate        DateTime
+  endDate          DateTime
+  avaEndDate       DateTime?
+  totalHours       Int              @default(0)
+  notes            String?
+  meetings         Meeting[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([scheduleId, order])
+}
+
+model Meeting {
+  id             String        @id @default(cuid())
+  scheduleItemId String
+  scheduleItem   ScheduleItem  @relation(fields: [scheduleItemId], references: [id], onDelete: Cascade)
+  number         Int
+  type           MeetingType
+  date           DateTime
+  startTime      String
+  endTime        String
+  hours          Int
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([scheduleItemId, number])
 }
