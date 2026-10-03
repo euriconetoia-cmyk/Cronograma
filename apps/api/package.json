@@ -16,7 +16,8 @@
     "class-transformer": "latest",
     "class-validator": "latest",
     "reflect-metadata": "latest",
-    "rxjs": "latest"
+    "rxjs": "latest",
+    "@cronograma/schedule-engine": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "latest",
