@@ -73,7 +73,7 @@ export class SchedulesService {
         where: { classGroupId },
       });
 
-      return tx.schedule.create({
+      const schedule = await tx.schedule.create({
         data: {
           classGroupId,
           startDate: new Date(`${preview.startDate}T12:00:00.000Z`),
@@ -118,6 +118,13 @@ export class SchedulesService {
           },
         },
       });
+
+      await tx.classGroup.update({
+        where: { id: classGroupId },
+        data: { status: 'PLANNED' },
+      });
+
+      return schedule;
     });
   }
 
