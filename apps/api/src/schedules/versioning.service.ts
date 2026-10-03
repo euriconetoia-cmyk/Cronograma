@@ -93,6 +93,70 @@ export class VersioningService {
     });
   }
 
+  async compare(scheduleId: string, fromVersion: number, toVersion: number) {
+    const [from, to] = await Promise.all([
+      this.get(scheduleId, fromVersion),
+      this.get(scheduleId, toVersion),
+    ]);
+
+    if (!from || !to) {
+      throw new NotFoundException('Uma das versões informadas não foi encontrada.');
+    }
+
+    const fromSnapshot = from.snapshot as any;
+    const toSnapshot = to.snapshot as any;
+    const fromItems = new Map(
+      (fromSnapshot.items ?? []).map((item: any) => [item.curricularUnitId ?? item.title, item]),
+    );
+    const toItems = new Map(
+      (toSnapshot.items ?? []).map((item: any) => [item.curricularUnitId ?? item.title, item]),
+    );
+
+    const keys = new Set([...fromItems.keys(), ...toItems.keys()]);
+    const changes = [];
+
+    for (const key of keys) {
+      const before = fromItems.get(key);
+      const after = toItems.get(key);
+
+      if (!before || !after) {
+        changes.push({
+          key,
+          type: before ? 'REMOVED' : 'ADDED',
+          before: before ?? null,
+          after: after ?? null,
+        });
+        continue;
+      }
+
+      const fields = ['startDate', 'endDate', 'avaEndDate', 'totalHours'];
+      const changedFields = fields
+        .filter((field) => before[field] !== after[field])
+        .map((field) => ({
+          field,
+          before: before[field] ?? null,
+          after: after[field] ?? null,
+        }));
+
+      if (changedFields.length > 0) {
+        changes.push({
+          key,
+          type: 'CHANGED',
+          title: after.title,
+          changedFields,
+        });
+      }
+    }
+
+    return {
+      fromVersion,
+      toVersion,
+      statusBefore: fromSnapshot.schedule?.status,
+      statusAfter: toSnapshot.schedule?.status,
+      changes,
+    };
+  }
+
   async audit(
     entityType: string,
     entityId: string,
