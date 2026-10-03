@@ -400,3 +400,152 @@ textarea { width:100%; border:1px solid #d6dbe2; border-radius:8px; padding:10px
     grid-template-columns: 1fr;
   }
 }
+
+
+.dashboard-filter {
+  max-width: 220px;
+  margin: 24px 0;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.metric-card {
+  padding: 18px;
+  border: 1px solid #e2e5e9;
+  border-radius: 14px;
+  background: white;
+}
+
+.metric-card span {
+  display: block;
+  color: #64748b;
+  font-size: .78rem;
+  margin-bottom: 8px;
+}
+
+.metric-card strong {
+  font-size: 1.65rem;
+}
+
+.dashboard-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.report-card {
+  padding: 22px;
+  border: 1px solid #e2e5e9;
+  border-radius: 16px;
+  background: white;
+  overflow-x: auto;
+}
+
+.bar-list {
+  display: grid;
+  gap: 14px;
+}
+
+.bar-row {
+  display: grid;
+  gap: 6px;
+}
+
+.bar-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #edf0f4;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #c8102e;
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.annual-planning-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.annual-month {
+  min-height: 260px;
+  padding: 18px;
+  border: 1px solid #e2e5e9;
+  border-radius: 14px;
+  background: white;
+}
+
+.annual-month-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.annual-month-head span {
+  color: #c8102e;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.month-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+  color: #64748b;
+  font-size: .8rem;
+}
+
+.planning-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.planning-list li {
+  border-top: 1px solid #e7e9ee;
+  padding-top: 8px;
+}
+
+.planning-list a,
+.planning-list span,
+.planning-list small {
+  display: block;
+}
+
+.planning-list span,
+.planning-list small {
+  margin-top: 3px;
+  color: #64748b;
+}
+
+@media (max-width: 980px) {
+  .dashboard-sections,
+  .annual-planning-grid,
+  .quick-links {
+    grid-template-columns: 1fr;
+  }
+}
