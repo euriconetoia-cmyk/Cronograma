@@ -25,6 +25,7 @@
     "@types/node": "latest",
     "tsx": "latest",
     "typescript": "latest",
-    "@types/multer": "latest"
+    "@types/multer": "latest",
+    "@types/express": "latest"
   }
 }
