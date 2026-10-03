@@ -10,6 +10,7 @@ import { PeopleModule } from './people/people.module';
 import { ClassesModule } from './classes/classes.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { RoomsModule } from './rooms/rooms.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RoomsModule } from './rooms/rooms.module';
     ClassesModule,
     SchedulesModule,
     RoomsModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
 })
