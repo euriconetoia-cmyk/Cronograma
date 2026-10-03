@@ -64,3 +64,156 @@ export function validateTimeWindow(startTime: string, endTime: string): Validati
 
   return [];
 }
+
+
+export interface ScheduleValidationMeeting {
+  date: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface ScheduleValidationItem {
+  id?: string;
+  title: string;
+  type: string;
+  startDate: string;
+  endDate: string;
+  avaEndDate?: string;
+  totalHours: number;
+  expectedHours?: number;
+  requiredMeetingCount?: number;
+  meetings?: ScheduleValidationMeeting[];
+}
+
+export interface ScheduleValidationRestriction {
+  startDate: string;
+  endDate: string;
+  blocksAcademicActivities: boolean;
+  reason?: string;
+}
+
+export interface ValidateScheduleInput {
+  items: ScheduleValidationItem[];
+  restrictions?: ScheduleValidationRestriction[];
+  endDateLimit?: string;
+}
+
+function dateInsideRange(date: string, start: string, end: string): boolean {
+  return date >= start && date <= end;
+}
+
+export function validateSchedule(input: ValidateScheduleInput): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const restrictions = input.restrictions ?? [];
+
+  if (input.items.length === 0) {
+    issues.push({
+      code: 'SCHEDULE_EMPTY',
+      severity: 'ERROR',
+      message: 'O cronograma não possui itens.',
+    });
+    return issues;
+  }
+
+  for (let index = 0; index < input.items.length; index += 1) {
+    const item = input.items[index]!;
+    const previous = input.items[index - 1];
+
+    if (item.endDate < item.startDate) {
+      issues.push({
+        code: 'ITEM_END_BEFORE_START',
+        severity: 'ERROR',
+        message: `"${item.title}" possui término anterior ao início.`,
+      });
+    }
+
+    if (item.avaEndDate && item.avaEndDate < item.endDate) {
+      issues.push({
+        code: 'AVA_END_BEFORE_ITEM_END',
+        severity: 'ERROR',
+        message: `O encerramento do AVA de "${item.title}" é anterior ao término da atividade.`,
+      });
+    }
+
+    if (
+      typeof item.expectedHours === 'number' &&
+      item.type === 'CURRICULAR_UNIT' &&
+      item.totalHours !== item.expectedHours
+    ) {
+      issues.push({
+        code: 'UC_HOURS_MISMATCH',
+        severity: 'ERROR',
+        message: `A carga horária de "${item.title}" não corresponde à carga horária da UC.`,
+      });
+    }
+
+    if (
+      typeof item.requiredMeetingCount === 'number' &&
+      (item.meetings?.length ?? 0) < item.requiredMeetingCount
+    ) {
+      issues.push({
+        code: 'REQUIRED_MEETINGS_MISSING',
+        severity: 'WARNING',
+        message: `"${item.title}" possui menos encontros do que o configurado na matriz.`,
+      });
+    }
+
+    for (const restriction of restrictions) {
+      if (
+        restriction.blocksAcademicActivities &&
+        (dateInsideRange(item.startDate, restriction.startDate, restriction.endDate) ||
+          dateInsideRange(item.endDate, restriction.startDate, restriction.endDate))
+      ) {
+        issues.push({
+          code: 'ITEM_ON_BLOCKED_DATE',
+          severity: 'ERROR',
+          message: `"${item.title}" coincide com período bloqueado: ${restriction.reason ?? 'calendário acadêmico'}.`,
+        });
+        break;
+      }
+    }
+
+    for (const meeting of item.meetings ?? []) {
+      const blocked = restrictions.find(
+        (restriction) =>
+          restriction.blocksAcademicActivities &&
+          dateInsideRange(meeting.date, restriction.startDate, restriction.endDate),
+      );
+
+      if (blocked) {
+        issues.push({
+          code: 'MEETING_ON_BLOCKED_DATE',
+          severity: 'ERROR',
+          message: `Encontro de "${item.title}" está em período bloqueado: ${blocked.reason ?? 'calendário acadêmico'}.`,
+        });
+      }
+
+      if (validateTimeWindow(meeting.startTime, meeting.endTime).length > 0) {
+        issues.push({
+          code: 'MEETING_INVALID_TIME',
+          severity: 'ERROR',
+          message: `Encontro de "${item.title}" possui horário inválido.`,
+        });
+      }
+    }
+
+    if (previous && item.startDate < previous.startDate) {
+      issues.push({
+        code: 'ITEM_SEQUENCE_INVALID',
+        severity: 'WARNING',
+        message: `"${item.title}" inicia antes do item anterior na sequência.`,
+      });
+    }
+  }
+
+  const last = input.items[input.items.length - 1];
+  if (input.endDateLimit && last && last.endDate > input.endDateLimit) {
+    issues.push({
+      code: 'SCHEDULE_AFTER_END_LIMIT',
+      severity: 'WARNING',
+      message: `O cronograma termina em ${last.endDate}, após a data limite ${input.endDateLimit}.`,
+    });
+  }
+
+  return issues;
+}
