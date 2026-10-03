@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { UpdateScheduleItemDto } from './dto/update-schedule-item.dto';
+import { AssignMeetingResourceDto } from './dto/assign-meeting-resource.dto';
 import { WorkflowActionDto } from './dto/workflow-action.dto';
 import { SchedulesService } from './schedules.service';
 import { WorkflowService } from './workflow.service';
@@ -107,6 +108,19 @@ export class SchedulesController {
   @Patch('items/:id')
   updateItem(@Param('id') id: string, @Body() data: UpdateScheduleItemDto) {
     return this.schedulesService.updateItem(id, data);
+  }
+
+  @Patch('meetings/:id/resources')
+  assignMeetingResource(
+    @Param('id') id: string,
+    @Body() data: AssignMeetingResourceDto,
+  ) {
+    return this.schedulesService.assignMeetingResource(id, data);
+  }
+
+  @Get('class/:classGroupId/resource-conflicts')
+  resourceConflicts(@Param('classGroupId') classGroupId: string) {
+    return this.schedulesService.resourceConflicts(classGroupId);
   }
 
   @Get('class/:classGroupId')
