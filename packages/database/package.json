@@ -1,0 +1,16 @@
+{
+  "name": "@cronograma/database",
+  "private": true,
+  "scripts": {
+    "build": "prisma generate",
+    "typecheck": "prisma validate",
+    "test": "prisma validate",
+    "prisma": "prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "latest"
+  },
+  "devDependencies": {
+    "prisma": "latest"
+  }
+}
