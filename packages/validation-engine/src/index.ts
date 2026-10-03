@@ -49,3 +49,18 @@ export function validateCurricularUnitHours(data: CurricularUnitHours): Validati
 
   return issues;
 }
+
+
+export function validateTimeWindow(startTime: string, endTime: string): ValidationIssue[] {
+  if (endTime <= startTime) {
+    return [
+      {
+        code: 'END_TIME_NOT_AFTER_START',
+        severity: 'ERROR',
+        message: 'O horário final deve ser posterior ao horário inicial.',
+      },
+    ];
+  }
+
+  return [];
+}
