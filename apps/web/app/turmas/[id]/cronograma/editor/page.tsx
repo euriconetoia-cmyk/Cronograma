@@ -52,6 +52,7 @@ export default function ScheduleEditorPage() {
 
     try {
       await apiPatch(`/schedules/items/${itemId}`, {
+        actorName: form.get('actorName'),
         startDate: form.get('startDate'),
         endDate: form.get('endDate'),
         avaEndDate: form.get('avaEndDate') || undefined,
@@ -147,15 +148,21 @@ export default function ScheduleEditorPage() {
               </label>
             </div>
 
-            <label>
-              Motivo do ajuste
+            <div className="form-grid">
+              <label>
+                Autor do ajuste
+                <input name="actorName" placeholder="Nome do responsável" required />
+              </label>
+              <label>
+                Motivo do ajuste
               <input
                 name="adjustmentReason"
                 defaultValue={item.adjustmentReason ?? ''}
                 placeholder="Ex.: ajuste por indisponibilidade de instrutor"
                 required
               />
-            </label>
+              </label>
+            </div>
 
             <button type="submit">Salvar ajuste</button>
           </form>

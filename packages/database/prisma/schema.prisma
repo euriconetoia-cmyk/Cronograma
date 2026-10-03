@@ -57,8 +57,16 @@ enum ClassGroupPersonRole {
 enum ScheduleStatus {
   GENERATED
   REVIEW
+  AWAITING_APPROVAL
   APPROVED
   PUBLISHED
+}
+
+enum ApprovalDecision {
+  PENDING
+  APPROVED
+  REJECTED
+  CHANGES_REQUESTED
 }
 
 enum ScheduleItemType {
@@ -310,6 +318,8 @@ model Schedule {
   startDate    DateTime?
   endDate      DateTime?
   items        ScheduleItem[]
+  versions     ScheduleVersion[]
+  approvals    Approval[]
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 }
@@ -351,4 +361,41 @@ model Meeting {
   updatedAt      DateTime      @updatedAt
 
   @@unique([scheduleItemId, number])
+}
+
+
+model ScheduleVersion {
+  id           String    @id @default(cuid())
+  scheduleId   String
+  schedule     Schedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  version      Int
+  actorName    String
+  reason       String
+  snapshot     Json
+  createdAt    DateTime  @default(now())
+
+  @@unique([scheduleId, version])
+}
+
+model Approval {
+  id           String             @id @default(cuid())
+  scheduleId   String
+  schedule     Schedule           @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  decision     ApprovalDecision   @default(PENDING)
+  actorName    String
+  comment      String?
+  createdAt    DateTime           @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  entityType  String
+  entityId    String
+  action      String
+  actorName   String
+  reason      String?
+  changes     Json?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
 }

@@ -76,6 +76,7 @@ export default function ClassDetailPage() {
         <div className="header-actions">
           <Link href={`/turmas/${id}/cronograma`}>Gerar cronograma</Link>
           <Link href={`/turmas/${id}/cronograma/editor`}>Editar cronograma</Link>
+          <Link href={`/turmas/${id}/cronograma/workflow`}>Versionamento e aprovação</Link>
           <Link href="/turmas">Voltar às turmas</Link>
         </div>
       </header>
