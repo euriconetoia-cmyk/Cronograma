@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -54,10 +55,25 @@ export class ImportExportController {
   }
 
   @Post('preview')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 },
+      fileFilter: (_request, file, callback) => {
+        const allowed =
+          file.mimetype ===
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+          file.originalname.toLowerCase().endsWith('.xlsx');
+
+        callback(
+          allowed ? null : new BadRequestException('Envie um arquivo XLSX válido.'),
+          allowed,
+        );
+      },
+    }),
+  )
   async preview(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
-      throw new Error('Arquivo não enviado.');
+      throw new BadRequestException('Arquivo não enviado.');
     }
 
     return this.service.previewImport(file.originalname, file.buffer);
