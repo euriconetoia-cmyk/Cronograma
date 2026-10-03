@@ -549,3 +549,25 @@ textarea { width:100%; border:1px solid #d6dbe2; border-radius:8px; padding:10px
     grid-template-columns: 1fr;
   }
 }
+
+
+.mapping-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.mapping-grid > div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #e2e5e9;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.mapping-grid span {
+  color: #64748b;
+  font-size: .75rem;
+  text-transform: uppercase;
+}

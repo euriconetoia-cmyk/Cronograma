@@ -51,6 +51,10 @@ export default function HomePage() {
           <Link className="card-link" href="/relatorios">
             Relatórios
           </Link>
+          {' | '}
+          <Link className="card-link" href="/importar">
+            Importar Planilha
+          </Link>
         </p>
       </section>
 

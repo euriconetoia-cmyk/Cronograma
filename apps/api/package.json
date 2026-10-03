@@ -17,11 +17,15 @@
     "class-validator": "latest",
     "reflect-metadata": "latest",
     "rxjs": "latest",
-    "@cronograma/schedule-engine": "workspace:*"
+    "@cronograma/schedule-engine": "workspace:*",
+    "exceljs": "latest",
+    "multer": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",
     "tsx": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "@types/multer": "latest",
+    "@types/express": "latest"
   }
 }
