@@ -207,7 +207,7 @@ export default function ClassesPage() {
           <tbody>
             {classes.map((item) => (
               <tr key={item.id}>
-                <td>{item.code}</td>
+                <td><Link href={`/turmas/${item.id}`}>{item.code}</Link></td>
                 <td>{item.course.name}</td>
                 <td>{item.courseVersion.name}</td>
                 <td>{item.unit.name}</td>
