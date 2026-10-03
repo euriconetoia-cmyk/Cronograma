@@ -17,6 +17,7 @@ Este diretório concentra a documentação oficial do sistema de planejamento ac
 11. [Ambiente de desenvolvimento](11-ambiente-desenvolvimento.md)
 12. [API do Catálogo Acadêmico](12-api-catalogo-academico.md)
 13. [Calendário Acadêmico](13-calendario-academico.md)
+14. [Turmas e Regras](14-turmas-e-regras.md)
 
 ## Princípios do projeto
 
