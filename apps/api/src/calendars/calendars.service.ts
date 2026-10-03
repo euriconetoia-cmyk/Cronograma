@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { validateDateOrder } from '@cronograma/validation-engine';
 import { DatabaseService } from '../database/database.service';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
 import { CreateCalendarEventDto } from './dto/create-calendar-event.dto';
@@ -30,12 +31,30 @@ export class CalendarsService {
     });
   }
 
-  createEvent(data: CreateCalendarEventDto) {
+  async createEvent(data: CreateCalendarEventDto) {
+    const calendar = await this.database.academicCalendar.findUnique({
+      where: { id: data.calendarId },
+    });
+
+    if (!calendar) {
+      throw new NotFoundException('Calendário acadêmico não encontrado.');
+    }
+
     const startDate = new Date(data.startDate);
     const endDate = new Date(data.endDate);
+    const dateIssues = validateDateOrder(startDate, endDate);
 
-    if (endDate.getTime() < startDate.getTime()) {
-      throw new BadRequestException('A data final do evento não pode ser anterior à data inicial.');
+    if (dateIssues.length > 0) {
+      throw new BadRequestException(dateIssues[0]?.message);
+    }
+
+    if (
+      startDate.getUTCFullYear() !== calendar.year ||
+      endDate.getUTCFullYear() !== calendar.year
+    ) {
+      throw new BadRequestException(
+        'O evento deve estar integralmente dentro do ano do calendário acadêmico.',
+      );
     }
 
     return this.database.calendarEvent.create({
