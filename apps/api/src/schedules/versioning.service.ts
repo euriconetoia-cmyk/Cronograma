@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@cronograma/database';
 import { DatabaseService } from '../database/database.service';
 
 @Injectable()
@@ -35,9 +36,9 @@ export class VersioningService {
       schedule: {
         id: schedule.id,
         status: schedule.status,
-        startDate: schedule.startDate,
-        endDate: schedule.endDate,
-        generatedAt: schedule.generatedAt,
+        startDate: schedule.startDate?.toISOString(),
+        endDate: schedule.endDate?.toISOString(),
+        generatedAt: schedule.generatedAt.toISOString(),
       },
       items: schedule.items.map((item) => ({
         id: item.id,
@@ -45,9 +46,9 @@ export class VersioningService {
         type: item.type,
         title: item.title,
         order: item.order,
-        startDate: item.startDate,
-        endDate: item.endDate,
-        avaEndDate: item.avaEndDate,
+        startDate: item.startDate.toISOString(),
+        endDate: item.endDate.toISOString(),
+        avaEndDate: item.avaEndDate?.toISOString(),
         totalHours: item.totalHours,
         manuallyAdjusted: item.manuallyAdjusted,
         adjustmentReason: item.adjustmentReason,
@@ -55,7 +56,7 @@ export class VersioningService {
           id: meeting.id,
           number: meeting.number,
           type: meeting.type,
-          date: meeting.date,
+          date: meeting.date.toISOString(),
           startTime: meeting.startTime,
           endTime: meeting.endTime,
           hours: meeting.hours,
@@ -107,7 +108,7 @@ export class VersioningService {
         action,
         actorName,
         reason,
-        changes: changes as object | undefined,
+        changes: changes ? (changes as Prisma.InputJsonValue) : undefined,
       },
     });
   }
