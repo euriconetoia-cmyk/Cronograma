@@ -66,6 +66,29 @@ export class CalendarsService {
     });
   }
 
+  async restrictions(calendarId: string) {
+    const calendar = await this.database.academicCalendar.findUnique({
+      where: { id: calendarId },
+      include: {
+        events: {
+          orderBy: { startDate: 'asc' },
+        },
+      },
+    });
+
+    if (!calendar) {
+      throw new NotFoundException('Calendário acadêmico não encontrado.');
+    }
+
+    return calendar.events.map((event) => ({
+      startDate: event.startDate.toISOString().slice(0, 10),
+      endDate: event.endDate.toISOString().slice(0, 10),
+      blocksAcademicActivities: event.blocksAcademicActivities,
+      reason: event.title,
+      type: event.type,
+    }));
+  }
+
   removeEvent(id: string) {
     return this.database.calendarEvent.delete({
       where: { id },
