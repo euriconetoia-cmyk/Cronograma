@@ -160,6 +160,8 @@ export class ImportExportService {
       const warnings: string[] = [];
 
       if (!normalized.curricularUnit) errors.push('Unidade Curricular não identificada.');
+      if (!normalized.startDate) errors.push('Data de início não identificada.');
+      if (!normalized.endDate) errors.push('Data de término não identificada.');
       if (!normalized.totalHours) warnings.push('Carga horária não identificada.');
       if (!normalized.course) warnings.push('Curso não identificado.');
 
@@ -410,20 +412,75 @@ export class ImportExportService {
 
       if (!mapping.course && key.includes('curso')) mapping.course = header;
       else if (!mapping.module && key.includes('modulo')) mapping.module = header;
-      else if (!mapping.curricularUnit && (key === 'uc' || key.includes('unidade curricular'))) mapping.curricularUnit = header;
-      else if (!mapping.totalHours && key.includes('ch total')) mapping.totalHours = header;
-      else if (!mapping.inPersonHours && key.includes('presencial')) mapping.inPersonHours = header;
-      else if (!mapping.eadHours && key.includes('ead')) mapping.eadHours = header;
-      else if (!mapping.avaEndDate && key.includes('ava') && key.includes('fim')) mapping.avaEndDate = header;
-      else if (!mapping.startDate && key.includes('inicio')) mapping.startDate = header;
-      else if (!mapping.endDate && key.includes('termino')) mapping.endDate = header;
-      else if (!mapping.classCode && (key.includes('evento') || key.includes('turma'))) mapping.classCode = header;
+      else if (
+        !mapping.curricularUnit &&
+        (key === 'uc' ||
+          key.includes('unidade curricular') ||
+          key.includes('componente curricular'))
+      ) mapping.curricularUnit = header;
+      else if (
+        !mapping.meetingNumber &&
+        key.includes('encontro') &&
+        (key.includes('numero') || key.includes('n '))
+      ) mapping.meetingNumber = header;
+      else if (
+        !mapping.meetingDate &&
+        key.includes('data') &&
+        (key.includes('encontro') || key.includes('presencial') || key.includes('webaula'))
+      ) mapping.meetingDate = header;
+      else if (
+        !mapping.meetingStartTime &&
+        (key.includes('hora') || key.includes('horario')) &&
+        key.includes('inicio')
+      ) mapping.meetingStartTime = header;
+      else if (
+        !mapping.meetingEndTime &&
+        (key.includes('hora') || key.includes('horario')) &&
+        (key.includes('fim') || key.includes('termino'))
+      ) mapping.meetingEndTime = header;
+      else if (
+        !mapping.totalHours &&
+        (key === 'ch' ||
+          key.includes('ch total') ||
+          key.includes('carga horaria total') ||
+          key.includes('carga horaria'))
+      ) mapping.totalHours = header;
+      else if (
+        !mapping.inPersonHours &&
+        (key.includes('ch presencial') || key.includes('carga presencial'))
+      ) mapping.inPersonHours = header;
+      else if (
+        !mapping.eadHours &&
+        (key.includes('ch ead') || key.includes('carga ead'))
+      ) mapping.eadHours = header;
+      else if (
+        !mapping.avaEndDate &&
+        key.includes('ava') &&
+        (key.includes('fim') || key.includes('termino'))
+      ) mapping.avaEndDate = header;
+      else if (
+        !mapping.startDate &&
+        (key.includes('data inicio') ||
+          key.includes('inicio uc') ||
+          key === 'inicio')
+      ) mapping.startDate = header;
+      else if (
+        !mapping.endDate &&
+        (key.includes('data termino') ||
+          key.includes('data fim') ||
+          key.includes('termino uc') ||
+          key === 'termino' ||
+          key === 'fim')
+      ) mapping.endDate = header;
+      else if (
+        !mapping.classCode &&
+        (key.includes('codigo evento') ||
+          key.includes('evento') ||
+          key.includes('codigo turma') ||
+          key === 'turma')
+      ) mapping.classCode = header;
       else if (!mapping.tutor && key.includes('tutor')) mapping.tutor = header;
       else if (!mapping.monitor && key.includes('monitor')) mapping.monitor = header;
-      else if (!mapping.meetingNumber && key.includes('encontro') && key.includes('numero')) mapping.meetingNumber = header;
-      else if (!mapping.meetingDate && key.includes('data') && key.includes('encontro')) mapping.meetingDate = header;
-      else if (!mapping.meetingStartTime && key.includes('hora') && key.includes('inicio')) mapping.meetingStartTime = header;
-      else if (!mapping.meetingEndTime && key.includes('hora') && key.includes('fim')) mapping.meetingEndTime = header;
       else if (!mapping.recovery && key.includes('recuperacao')) mapping.recovery = header;
     }
 
