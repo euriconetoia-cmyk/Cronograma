@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { apiGet, apiPost } from '../lib/api';
+import { apiGet, apiPost } from '../../lib/api';
 
 type Unit = { id: string; name: string };
 type CalendarEvent = {
