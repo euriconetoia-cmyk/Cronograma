@@ -8,6 +8,7 @@ import { CurriculumModule } from './curriculum/curriculum.module';
 import { CalendarsModule } from './calendars/calendars.module';
 import { PeopleModule } from './people/people.module';
 import { ClassesModule } from './classes/classes.module';
+import { SchedulesModule } from './schedules/schedules.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ClassesModule } from './classes/classes.module';
     CalendarsModule,
     PeopleModule,
     ClassesModule,
+    SchedulesModule,
   ],
   controllers: [HealthController],
 })
