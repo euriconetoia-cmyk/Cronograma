@@ -17,6 +17,18 @@ enum ModalityStatus {
   INACTIVE
 }
 
+enum CalendarEventType {
+  NATIONAL_HOLIDAY
+  STATE_HOLIDAY
+  MUNICIPAL_HOLIDAY
+  RECESS
+  VACATION
+  ACADEMIC_DAY
+  NON_ACADEMIC_DAY
+  BLOCKED_DATE
+  INSTITUTIONAL_EVENT
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -27,16 +39,17 @@ model User {
 }
 
 model Unit {
-  id        String   @id @default(cuid())
+  id        String             @id @default(cuid())
   name      String
-  code      String   @unique
+  code      String             @unique
   city      String
   state     String
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  active    Boolean            @default(true)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 
   courses   Course[]
+  calendars AcademicCalendar[]
 }
 
 model Modality {
@@ -127,4 +140,35 @@ model CurricularUnit {
   updatedAt             DateTime     @updatedAt
 
   @@unique([moduleId, order])
+}
+
+
+model AcademicCalendar {
+  id        String          @id @default(cuid())
+  name      String
+  year      Int
+  unitId    String
+  unit      Unit            @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  active    Boolean         @default(true)
+  events    CalendarEvent[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([unitId, year])
+}
+
+model CalendarEvent {
+  id                       String            @id @default(cuid())
+  calendarId               String
+  calendar                 AcademicCalendar  @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  type                     CalendarEventType
+  title                    String
+  startDate                DateTime
+  endDate                  DateTime
+  blocksAcademicActivities Boolean           @default(true)
+  description              String?
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+
+  @@index([calendarId, startDate, endDate])
 }
