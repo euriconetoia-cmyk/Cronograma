@@ -328,6 +328,8 @@ model ScheduleItem {
   avaEndDate       DateTime?
   totalHours       Int              @default(0)
   notes            String?
+  manuallyAdjusted Boolean          @default(false)
+  adjustmentReason String?
   meetings         Meeting[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
