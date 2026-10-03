@@ -323,9 +323,14 @@ export class SchedulesService {
     const schedule = await this.database.schedule.findUnique({
       where: { classGroupId },
       include: {
+        classGroup: true,
         items: {
           include: {
-            meetings: true,
+            meetings: {
+              include: {
+                room: true,
+              },
+            },
           },
         },
       },
@@ -344,6 +349,8 @@ export class SchedulesService {
         endTime: meeting.endTime,
         instructorId: meeting.instructorId,
         roomId: meeting.roomId,
+        roomCapacity: meeting.room?.capacity,
+        expectedStudents: schedule.classGroup.expectedStudents,
       })),
     );
 
