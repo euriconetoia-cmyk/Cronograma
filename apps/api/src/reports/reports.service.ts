@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { Weekday } from '@cronograma/database';
+import { validateResourceConflicts } from '@cronograma/validation-engine';
 import { DatabaseService } from '../database/database.service';
 
 @Injectable()
@@ -95,6 +97,8 @@ export class ReportsService {
       0,
     );
 
+    const conflicts = await this.conflicts(year, unitId);
+
     return {
       filters: { year: year ?? null, unitId: unitId ?? null },
       totals: {
@@ -105,6 +109,8 @@ export class ReportsService {
         rooms,
         people,
         meetings: totalMeetings,
+        conflicts: conflicts.summary.total,
+        criticalConflicts: conflicts.summary.errors,
       },
       classesByStatus: byStatus,
       classesByModality: byModality,
@@ -178,6 +184,101 @@ export class ReportsService {
         schedules: classes.filter((item) => item.schedule).length,
       },
       months,
+    };
+  }
+
+  async conflicts(year?: number, unitId?: string) {
+    const meetings = await this.database.meeting.findMany({
+      where: {
+        scheduleItem: {
+          schedule: {
+            classGroup: {
+              ...(unitId ? { unitId } : {}),
+              ...(year
+                ? {
+                    startDate: {
+                      gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                      lte: new Date(`${year}-12-31T23:59:59.999Z`),
+                    },
+                  }
+                : {}),
+            },
+          },
+        },
+      },
+      include: {
+        room: true,
+        instructor: true,
+        scheduleItem: {
+          include: {
+            schedule: {
+              include: {
+                classGroup: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const instructorIds = [
+      ...new Set(
+        meetings
+          .map((meeting) => meeting.instructorId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
+    const availabilities = instructorIds.length
+      ? await this.database.personAvailability.findMany({
+          where: {
+            personId: { in: instructorIds },
+            active: true,
+          },
+        })
+      : [];
+
+    const weekdayNumber: Record<Weekday, number> = {
+      SUNDAY: 0,
+      MONDAY: 1,
+      TUESDAY: 2,
+      WEDNESDAY: 3,
+      THURSDAY: 4,
+      FRIDAY: 5,
+      SATURDAY: 6,
+    };
+
+    const issues = validateResourceConflicts(
+      meetings.map((meeting) => ({
+        id: meeting.id,
+        title: meeting.scheduleItem.title,
+        date: meeting.date.toISOString().slice(0, 10),
+        startTime: meeting.startTime,
+        endTime: meeting.endTime,
+        instructorId: meeting.instructorId,
+        roomId: meeting.roomId,
+        roomCapacity: meeting.room?.capacity,
+        expectedStudents: meeting.scheduleItem.schedule.classGroup.expectedStudents,
+      })),
+      availabilities.map((item) => ({
+        personId: item.personId,
+        weekday: weekdayNumber[item.weekday],
+        startTime: item.startTime,
+        endTime: item.endTime,
+      })),
+    );
+
+    return {
+      summary: {
+        total: issues.length,
+        errors: issues.filter((issue) => issue.severity === 'ERROR').length,
+        warnings: issues.filter((issue) => issue.severity === 'WARNING').length,
+      },
+      byCode: issues.reduce<Record<string, number>>((acc, issue) => {
+        acc[issue.code] = (acc[issue.code] ?? 0) + 1;
+        return acc;
+      }, {}),
+      issues,
     };
   }
 
