@@ -27,6 +27,14 @@ export default function HomePage() {
           <Link className="card-link" href="/calendarios">
             Acessar Calendário Acadêmico
           </Link>
+          {' | '}
+          <Link className="card-link" href="/turmas">
+            Acessar Turmas
+          </Link>
+          {' | '}
+          <Link className="card-link" href="/pessoas">
+            Acessar Pessoas
+          </Link>
         </p>
       </section>
 
