@@ -16,6 +16,7 @@ Este diretório concentra a documentação oficial do sistema de planejamento ac
 10. [Testes e qualidade](10-testes-e-qualidade.md)
 11. [Ambiente de desenvolvimento](11-ambiente-desenvolvimento.md)
 12. [API do Catálogo Acadêmico](12-api-catalogo-academico.md)
+13. [Calendário Acadêmico](13-calendario-academico.md)
 
 ## Princípios do projeto
 

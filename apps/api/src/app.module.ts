@@ -5,6 +5,7 @@ import { UnitsModule } from './units/units.module';
 import { ModalitiesModule } from './modalities/modalities.module';
 import { CoursesModule } from './courses/courses.module';
 import { CurriculumModule } from './curriculum/curriculum.module';
+import { CalendarsModule } from './calendars/calendars.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CurriculumModule } from './curriculum/curriculum.module';
     ModalitiesModule,
     CoursesModule,
     CurriculumModule,
+    CalendarsModule,
   ],
   controllers: [HealthController],
 })
