@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Weekday } from '@cronograma/database';
-import { validateDateOrder } from '@cronograma/validation-engine';
+import { validateDateOrder, validateTimeWindow } from '@cronograma/validation-engine';
 import { DatabaseService } from '../database/database.service';
 import { AddClassPersonDto } from './dto/add-class-person.dto';
 import { CreateClassGroupDto } from './dto/create-class-group.dto';
@@ -110,10 +110,9 @@ export class ClassesService {
     }
 
     for (const rule of data.scheduleRules) {
-      if (rule.endTime <= rule.startTime) {
-        throw new BadRequestException(
-          `O horário final de ${rule.weekday} deve ser posterior ao horário inicial.`,
-        );
+      const issues = validateTimeWindow(rule.startTime, rule.endTime);
+      if (issues.length > 0) {
+        throw new BadRequestException(`${rule.weekday}: ${issues[0]?.message}`);
       }
     }
 
