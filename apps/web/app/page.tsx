@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const modules = [
   'Cursos e matrizes',
   'Calendários acadêmicos',
@@ -14,8 +16,13 @@ export default function HomePage() {
         <p className="eyebrow">Cronograma SENAI</p>
         <h1>Planejamento acadêmico estruturado</h1>
         <p className="lead">
-          Fundação técnica criada. Os próximos incrementos transformarão cursos, matrizes,
-          calendários e regras acadêmicas em cronogramas gerados automaticamente.
+          A fundação técnica está pronta e o Catálogo Acadêmico já começou a ser implementado.
+          Cursos, modalidades, unidades e matrizes alimentarão as próximas fases do Schedule Engine.
+        </p>
+        <p>
+          <Link className="card-link" href="/catalogo">
+            Acessar Catálogo Acadêmico
+          </Link>
         </p>
       </section>
 
