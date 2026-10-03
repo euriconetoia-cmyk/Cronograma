@@ -2,6 +2,22 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@cronograma/database';
 import { DatabaseService } from '../database/database.service';
 
+interface VersionSnapshotItem {
+  curricularUnitId?: string | null;
+  title: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  avaEndDate?: string | null;
+  totalHours?: number | null;
+}
+
+interface VersionSnapshot {
+  schedule?: {
+    status?: string;
+  };
+  items?: VersionSnapshotItem[];
+}
+
 @Injectable()
 export class VersioningService {
   constructor(private readonly database: DatabaseService) {}
@@ -103,13 +119,13 @@ export class VersioningService {
       throw new NotFoundException('Uma das versões informadas não foi encontrada.');
     }
 
-    const fromSnapshot = from.snapshot as any;
-    const toSnapshot = to.snapshot as any;
+    const fromSnapshot = from.snapshot as unknown as VersionSnapshot;
+    const toSnapshot = to.snapshot as unknown as VersionSnapshot;
     const fromItems = new Map(
-      (fromSnapshot.items ?? []).map((item: any) => [item.curricularUnitId ?? item.title, item]),
+      (fromSnapshot.items ?? []).map((item) => [item.curricularUnitId ?? item.title, item]),
     );
     const toItems = new Map(
-      (toSnapshot.items ?? []).map((item: any) => [item.curricularUnitId ?? item.title, item]),
+      (toSnapshot.items ?? []).map((item) => [item.curricularUnitId ?? item.title, item]),
     );
 
     const keys = new Set([...fromItems.keys(), ...toItems.keys()]);
