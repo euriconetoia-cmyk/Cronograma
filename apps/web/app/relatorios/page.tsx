@@ -52,7 +52,9 @@ export default function ReportsPage() {
     }
   }
 
-  useEffect(() => { void load(currentYear); }, []);
+  useEffect(() => {
+    void load(currentYear);
+  }, []);
 
   return (
     <main className="calendar-page">
@@ -60,9 +62,7 @@ export default function ReportsPage() {
         <div>
           <p className="eyebrow">Gestão</p>
           <h1>Relatórios Operacionais</h1>
-          <p className="lead">
-            Analise carga de instrutores e utilização de salas e laboratórios.
-          </p>
+          <p className="lead">Analise carga de instrutores e utilização de salas e laboratórios.</p>
         </div>
         <Link href="/dashboard">Dashboard</Link>
       </header>
@@ -79,7 +79,9 @@ export default function ReportsPage() {
             }}
           >
             {[currentYear - 1, currentYear, currentYear + 1, currentYear + 2].map((value) => (
-              <option key={value} value={value}>{value}</option>
+              <option key={value} value={value}>
+                {value}
+              </option>
             ))}
           </select>
         </label>
@@ -89,10 +91,22 @@ export default function ReportsPage() {
 
       {conflicts && (
         <section className="calendar-summary">
-          <div><span>Conflitos</span><strong>{conflicts.summary.total}</strong></div>
-          <div><span>Erros críticos</span><strong>{conflicts.summary.errors}</strong></div>
-          <div><span>Alertas</span><strong>{conflicts.summary.warnings}</strong></div>
-          <div><span>Tipos</span><strong>{Object.keys(conflicts.byCode).length}</strong></div>
+          <div>
+            <span>Conflitos</span>
+            <strong>{conflicts.summary.total}</strong>
+          </div>
+          <div>
+            <span>Erros críticos</span>
+            <strong>{conflicts.summary.errors}</strong>
+          </div>
+          <div>
+            <span>Alertas</span>
+            <strong>{conflicts.summary.warnings}</strong>
+          </div>
+          <div>
+            <span>Tipos</span>
+            <strong>{Object.keys(conflicts.byCode).length}</strong>
+          </div>
         </section>
       )}
 
@@ -125,7 +139,13 @@ export default function ReportsPage() {
             <p className="muted">Nenhum encontro com instrutor no período.</p>
           ) : (
             <table>
-              <thead><tr><th>Instrutor</th><th>Encontros</th><th>Horas</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Instrutor</th>
+                  <th>Encontros</th>
+                  <th>Horas</th>
+                </tr>
+              </thead>
               <tbody>
                 {workload.map((item) => (
                   <tr key={item.instructorId}>
@@ -145,11 +165,19 @@ export default function ReportsPage() {
             <p className="muted">Nenhum recurso utilizado no período.</p>
           ) : (
             <table>
-              <thead><tr><th>Recurso</th><th>Encontros</th><th>Horas</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Recurso</th>
+                  <th>Encontros</th>
+                  <th>Horas</th>
+                </tr>
+              </thead>
               <tbody>
                 {rooms.map((item) => (
                   <tr key={item.roomId}>
-                    <td>{item.name} | {item.code}</td>
+                    <td>
+                      {item.name} | {item.code}
+                    </td>
                     <td>{item.meetings}</td>
                     <td>{item.hours} h</td>
                   </tr>

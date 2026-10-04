@@ -7,12 +7,15 @@ Validar cronogramas antes e depois da geração e também após alterações man
 ## Severidades
 
 ### Erro
+
 Pode impedir aprovação ou publicação.
 
 ### Alerta
+
 Exige atenção, mas pode permitir salvamento.
 
 ### Informação
+
 Contexto útil ao planejador.
 
 ## Validações mínimas

@@ -19,33 +19,43 @@
 ## Assistente de criação
 
 ### Passo 1
+
 Curso e matriz.
 
 ### Passo 2
+
 Unidade e modalidade.
 
 ### Passo 3
+
 Identificação da turma.
 
 ### Passo 4
+
 Data inicial.
 
 ### Passo 5
+
 Dias e horários.
 
 ### Passo 6
+
 Calendário.
 
 ### Passo 7
+
 Equipe.
 
 ### Passo 8
+
 Regras acadêmicas.
 
 ### Passo 9
+
 Simulação.
 
 ### Passo 10
+
 Prévia e salvamento.
 
 ## Prévia durante a criação

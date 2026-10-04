@@ -23,10 +23,7 @@ export class PeopleController {
   }
 
   @Post(':id/availability')
-  createAvailability(
-    @Param('id') id: string,
-    @Body() data: CreateAvailabilityDto,
-  ) {
+  createAvailability(@Param('id') id: string, @Body() data: CreateAvailabilityDto) {
     return this.peopleService.createAvailability(id, data);
   }
 }

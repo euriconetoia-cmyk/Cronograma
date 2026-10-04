@@ -42,7 +42,9 @@ export default function ScheduleResourcesPage() {
     setConflicts(conflictData);
   }
 
-  useEffect(() => { void load(); }, [id]);
+  useEffect(() => {
+    void load();
+  }, [id]);
 
   async function assign(event: FormEvent<HTMLFormElement>, meetingId: string) {
     event.preventDefault();
@@ -67,7 +69,8 @@ export default function ScheduleResourcesPage() {
           <p className="eyebrow">Recursos do cronograma</p>
           <h1>Instrutores, Salas e Conflitos</h1>
           <p className="lead">
-            Aloque recursos aos encontros e valide automaticamente indisponibilidades e sobreposições.
+            Aloque recursos aos encontros e valide automaticamente indisponibilidades e
+            sobreposições.
           </p>
         </div>
         <Link href={`/turmas/${id}`}>Voltar à turma</Link>
@@ -105,21 +108,32 @@ export default function ScheduleResourcesPage() {
                   <h2>Encontro {meeting.number}</h2>
                 </div>
                 <strong>
-                  {new Date(meeting.date).toLocaleDateString('pt-BR')} | {meeting.startTime} às {meeting.endTime}
+                  {new Date(meeting.date).toLocaleDateString('pt-BR')} | {meeting.startTime} às{' '}
+                  {meeting.endTime}
                 </strong>
               </div>
 
               <div className="form-grid">
-                <label>Instrutor
+                <label>
+                  Instrutor
                   <select name="instructorId" defaultValue={meeting.instructor?.id ?? ''}>
                     <option value="">Não definido</option>
-                    {people.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
+                    {people.map((person) => (
+                      <option key={person.id} value={person.id}>
+                        {person.name}
+                      </option>
+                    ))}
                   </select>
                 </label>
-                <label>Sala ou laboratório
+                <label>
+                  Sala ou laboratório
                   <select name="roomId" defaultValue={meeting.room?.id ?? ''}>
                     <option value="">Não definido</option>
-                    {rooms.map((room) => <option key={room.id} value={room.id}>{room.name} | {room.code}</option>)}
+                    {rooms.map((room) => (
+                      <option key={room.id} value={room.id}>
+                        {room.name} | {room.code}
+                      </option>
+                    ))}
                   </select>
                 </label>
               </div>

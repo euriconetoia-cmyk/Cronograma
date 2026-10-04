@@ -60,7 +60,9 @@ export default function ClassesPage() {
     setCalendars(calendarData);
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   const filteredVersions = useMemo(
     () => versions.filter((item) => !selectedCourse || item.course.id === selectedCourse),
@@ -133,67 +135,141 @@ export default function ClassesPage() {
       <form className="form-card" onSubmit={submit}>
         <h2>Identificação</h2>
         <div className="form-grid">
-          <label>Código ou evento<input name="code" required /></label>
-          <label>Quantidade prevista de alunos<input name="expectedStudents" type="number" min="1" /></label>
-          <label>Curso
-            <select name="courseId" value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)} required>
-              <option value="">Selecione</option>
-              {courses.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-            </select>
+          <label>
+            Código ou evento
+            <input name="code" required />
           </label>
-          <label>Matriz
-            <select name="courseVersionId" required>
-              <option value="">Selecione</option>
-              {filteredVersions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-            </select>
+          <label>
+            Quantidade prevista de alunos
+            <input name="expectedStudents" type="number" min="1" />
           </label>
-          <label>Unidade
-            <select name="unitId" value={selectedUnit} onChange={(e) => setSelectedUnit(e.target.value)} required>
+          <label>
+            Curso
+            <select
+              name="courseId"
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+              required
+            >
               <option value="">Selecione</option>
-              {units.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-            </select>
-          </label>
-          <label>Modalidade
-            <select name="modalityId" required>
-              <option value="">Selecione</option>
-              {modalities.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-            </select>
-          </label>
-          <label>Calendário
-            <select name="academicCalendarId" required>
-              <option value="">Selecione</option>
-              {filteredCalendars.map((item) => (
-                <option key={item.id} value={item.id}>{item.name} | {item.year}</option>
+              {courses.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
               ))}
             </select>
           </label>
-          <label>Data inicial<input name="startDate" type="date" required /></label>
-          <label>Data limite<input name="endDateLimit" type="date" /></label>
+          <label>
+            Matriz
+            <select name="courseVersionId" required>
+              <option value="">Selecione</option>
+              {filteredVersions.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Unidade
+            <select
+              name="unitId"
+              value={selectedUnit}
+              onChange={(e) => setSelectedUnit(e.target.value)}
+              required
+            >
+              <option value="">Selecione</option>
+              {units.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Modalidade
+            <select name="modalityId" required>
+              <option value="">Selecione</option>
+              {modalities.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Calendário
+            <select name="academicCalendarId" required>
+              <option value="">Selecione</option>
+              {filteredCalendars.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name} | {item.year}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Data inicial
+            <input name="startDate" type="date" required />
+          </label>
+          <label>
+            Data limite
+            <input name="endDateLimit" type="date" />
+          </label>
         </div>
 
         <h2>Funcionamento semanal</h2>
         <div className="weekday-grid">
           {weekdays.map(([value, label]) => (
             <div className="weekday-card" key={value}>
-              <label><input name={`enabled_${value}`} type="checkbox" /> {label}</label>
-              <label>Início<input name={`start_${value}`} type="time" defaultValue="19:00" /></label>
-              <label>Término<input name={`end_${value}`} type="time" defaultValue="22:00" /></label>
-              <label>CH máxima<input name={`max_${value}`} type="number" min="1" /></label>
+              <label>
+                <input name={`enabled_${value}`} type="checkbox" /> {label}
+              </label>
+              <label>
+                Início
+                <input name={`start_${value}`} type="time" defaultValue="19:00" />
+              </label>
+              <label>
+                Término
+                <input name={`end_${value}`} type="time" defaultValue="22:00" />
+              </label>
+              <label>
+                CH máxima
+                <input name={`max_${value}`} type="number" min="1" />
+              </label>
             </div>
           ))}
         </div>
 
         <h2>Regras acadêmicas</h2>
         <div className="check-grid">
-          <label><input name="generateRecovery" type="checkbox" /> Gerar recuperação</label>
-          <label><input name="createEnrollmentPeriod" type="checkbox" /> Criar período de matrícula</label>
-          <label><input name="createInauguralClass" type="checkbox" /> Criar aula inaugural</label>
-          <label><input name="allowSaturday" type="checkbox" /> Permitir sábado</label>
-          <label><input name="allowSunday" type="checkbox" /> Permitir domingo</label>
-          <label><input name="allowOverlap" type="checkbox" /> Permitir sobreposição</label>
-          <label><input name="allowNextUcDuringRecovery" type="checkbox" /> Próxima UC durante recuperação</label>
+          <label>
+            <input name="generateRecovery" type="checkbox" /> Gerar recuperação
+          </label>
+          <label>
+            <input name="createEnrollmentPeriod" type="checkbox" /> Criar período de matrícula
+          </label>
+          <label>
+            <input name="createInauguralClass" type="checkbox" /> Criar aula inaugural
+          </label>
+          <label>
+            <input name="allowSaturday" type="checkbox" /> Permitir sábado
+          </label>
+          <label>
+            <input name="allowSunday" type="checkbox" /> Permitir domingo
+          </label>
+          <label>
+            <input name="allowOverlap" type="checkbox" /> Permitir sobreposição
+          </label>
+          <label>
+            <input name="allowNextUcDuringRecovery" type="checkbox" /> Próxima UC durante
+            recuperação
+          </label>
         </div>
-        <label>Dias adicionais de AVA<input name="avaExtraDays" type="number" min="0" defaultValue="0" /></label>
+        <label>
+          Dias adicionais de AVA
+          <input name="avaExtraDays" type="number" min="0" defaultValue="0" />
+        </label>
 
         <button type="submit">Criar turma</button>
         {message && <p className="form-message">{message}</p>}
@@ -202,12 +278,22 @@ export default function ClassesPage() {
       <section className="table-card">
         <table>
           <thead>
-            <tr><th>Código</th><th>Curso</th><th>Matriz</th><th>Unidade</th><th>Modalidade</th><th>Início</th><th>Dias</th></tr>
+            <tr>
+              <th>Código</th>
+              <th>Curso</th>
+              <th>Matriz</th>
+              <th>Unidade</th>
+              <th>Modalidade</th>
+              <th>Início</th>
+              <th>Dias</th>
+            </tr>
           </thead>
           <tbody>
             {classes.map((item) => (
               <tr key={item.id}>
-                <td><Link href={`/turmas/${item.id}`}>{item.code}</Link></td>
+                <td>
+                  <Link href={`/turmas/${item.id}`}>{item.code}</Link>
+                </td>
                 <td>{item.course.name}</td>
                 <td>{item.courseVersion.name}</td>
                 <td>{item.unit.name}</td>

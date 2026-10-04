@@ -42,7 +42,9 @@ export default function ResourcesPage() {
     setRooms(roomData);
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   async function createRoom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -98,9 +100,16 @@ export default function ResourcesPage() {
       <section className="calendar-forms">
         <form className="form-card" onSubmit={createRoom}>
           <h2>Nova sala ou laboratório</h2>
-          <label>Nome<input name="name" required /></label>
-          <label>Código<input name="code" required /></label>
-          <label>Tipo
+          <label>
+            Nome
+            <input name="name" required />
+          </label>
+          <label>
+            Código
+            <input name="code" required />
+          </label>
+          <label>
+            Tipo
             <select name="type" required>
               <option value="CLASSROOM">Sala de aula</option>
               <option value="COMPUTER_LAB">Laboratório de informática</option>
@@ -110,11 +119,19 @@ export default function ResourcesPage() {
               <option value="OTHER">Outro</option>
             </select>
           </label>
-          <label>Capacidade<input name="capacity" type="number" min="1" /></label>
-          <label>Unidade
+          <label>
+            Capacidade
+            <input name="capacity" type="number" min="1" />
+          </label>
+          <label>
+            Unidade
             <select name="unitId" required>
               <option value="">Selecione</option>
-              {units.map((unit) => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
+              {units.map((unit) => (
+                <option key={unit.id} value={unit.id}>
+                  {unit.name}
+                </option>
+              ))}
             </select>
           </label>
           <button type="submit">Cadastrar recurso</button>
@@ -122,20 +139,36 @@ export default function ResourcesPage() {
 
         <form className="form-card" onSubmit={createAvailability}>
           <h2>Disponibilidade de profissional</h2>
-          <label>Pessoa
+          <label>
+            Pessoa
             <select name="personId" required>
               <option value="">Selecione</option>
-              {people.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
+              {people.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
             </select>
           </label>
-          <label>Dia
+          <label>
+            Dia
             <select name="weekday" required>
-              {weekdays.map(([value,label]) => <option key={value} value={value}>{label}</option>)}
+              {weekdays.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
             </select>
           </label>
           <div className="form-grid">
-            <label>Início<input name="startTime" type="time" required /></label>
-            <label>Término<input name="endTime" type="time" required /></label>
+            <label>
+              Início
+              <input name="startTime" type="time" required />
+            </label>
+            <label>
+              Término
+              <input name="endTime" type="time" required />
+            </label>
           </div>
           <button type="submit">Cadastrar disponibilidade</button>
         </form>
@@ -143,7 +176,15 @@ export default function ResourcesPage() {
 
       <section className="table-card">
         <table>
-          <thead><tr><th>Recurso</th><th>Código</th><th>Tipo</th><th>Capacidade</th><th>Unidade</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Recurso</th>
+              <th>Código</th>
+              <th>Tipo</th>
+              <th>Capacidade</th>
+              <th>Unidade</th>
+            </tr>
+          </thead>
           <tbody>
             {rooms.map((room) => (
               <tr key={room.id}>

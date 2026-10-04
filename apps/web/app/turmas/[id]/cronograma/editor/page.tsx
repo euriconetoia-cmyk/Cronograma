@@ -91,11 +91,14 @@ export default function ScheduleEditorPage() {
           <p className="eyebrow">Editor</p>
           <h1>Editor de Cronograma</h1>
           <p className="lead">
-            Ajustes manuais ficam registrados. Use a regeneração para voltar às regras oficiais da turma.
+            Ajustes manuais ficam registrados. Use a regeneração para voltar às regras oficiais da
+            turma.
           </p>
         </div>
         <div className="header-actions">
-          <button type="button" onClick={() => void regenerate()}>Regenerar pelas regras</button>
+          <button type="button" onClick={() => void regenerate()}>
+            Regenerar pelas regras
+          </button>
           <Link href={`/turmas/${id}`}>Voltar à turma</Link>
         </div>
       </header>
@@ -109,7 +112,10 @@ export default function ScheduleEditorPage() {
         ) : (
           <ul className="event-list">
             {issues.map((issue, index) => (
-              <li key={`${issue.code}-${index}`} className={issue.severity === 'ERROR' ? 'blocked-event' : ''}>
+              <li
+                key={`${issue.code}-${index}`}
+                className={issue.severity === 'ERROR' ? 'blocked-event' : ''}
+              >
                 <strong>{issue.severity}</strong>
                 <span>{issue.message}</span>
               </li>
@@ -120,7 +126,11 @@ export default function ScheduleEditorPage() {
 
       <section className="schedule-list">
         {schedule.items.map((item) => (
-          <form className="schedule-item-card" key={item.id} onSubmit={(event) => void updateItem(event, item.id)}>
+          <form
+            className="schedule-item-card"
+            key={item.id}
+            onSubmit={(event) => void updateItem(event, item.id)}
+          >
             <div className="schedule-item-head">
               <div>
                 <span>{item.type}</span>
@@ -132,11 +142,21 @@ export default function ScheduleEditorPage() {
             <div className="form-grid">
               <label>
                 Início
-                <input name="startDate" type="date" defaultValue={item.startDate.slice(0, 10)} required />
+                <input
+                  name="startDate"
+                  type="date"
+                  defaultValue={item.startDate.slice(0, 10)}
+                  required
+                />
               </label>
               <label>
                 Término
-                <input name="endDate" type="date" defaultValue={item.endDate.slice(0, 10)} required />
+                <input
+                  name="endDate"
+                  type="date"
+                  defaultValue={item.endDate.slice(0, 10)}
+                  required
+                />
               </label>
               <label>
                 Encerramento AVA
@@ -155,12 +175,12 @@ export default function ScheduleEditorPage() {
               </label>
               <label>
                 Motivo do ajuste
-              <input
-                name="adjustmentReason"
-                defaultValue={item.adjustmentReason ?? ''}
-                placeholder="Ex.: ajuste por indisponibilidade de instrutor"
-                required
-              />
+                <input
+                  name="adjustmentReason"
+                  defaultValue={item.adjustmentReason ?? ''}
+                  placeholder="Ex.: ajuste por indisponibilidade de instrutor"
+                  required
+                />
               </label>
             </div>
 

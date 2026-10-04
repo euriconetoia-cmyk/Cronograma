@@ -14,15 +14,17 @@ describe('resource allocation completeness', () => {
 
   it('gera erro quando a sala não comporta a turma', () => {
     const issues = validateResourceConflicts(
-      [{
-        id: 'a',
-        date: '2027-03-01',
-        startTime: '19:00',
-        endTime: '22:00',
-        roomId: 'r1',
-        roomCapacity: 20,
-        expectedStudents: 30,
-      }],
+      [
+        {
+          id: 'a',
+          date: '2027-03-01',
+          startTime: '19:00',
+          endTime: '22:00',
+          roomId: 'r1',
+          roomCapacity: 20,
+          expectedStudents: 30,
+        },
+      ],
       [],
     );
 

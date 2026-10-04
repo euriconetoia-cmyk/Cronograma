@@ -2,7 +2,7 @@
   "name": "cronograma",
   "private": true,
   "scripts": {
-    "dev": "pnpm --parallel --filter @cronograma/web --filter @cronograma/api dev",
+    "dev": "pnpm --filter \"./packages/**\" build && pnpm --parallel --filter @cronograma/web --filter @cronograma/api dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
@@ -11,15 +11,24 @@
     "format:check": "prettier --check .",
     "db:generate": "pnpm --filter @cronograma/database prisma generate",
     "db:migrate": "pnpm --filter @cronograma/database prisma migrate dev",
-    "db:studio": "pnpm --filter @cronograma/database prisma studio"
+    "db:studio": "pnpm --filter @cronograma/database prisma studio",
+    "db:deploy": "pnpm --filter @cronograma/database prisma migrate deploy",
+    "dados:exemplo": "node scripts/dados-exemplo.mjs",
+    "pretypecheck": "pnpm --filter \"./packages/**\" build",
+    "pretest": "pnpm --filter \"./packages/**\" build"
   },
   "devDependencies": {
-    "@eslint/js": "latest",
-    "eslint": "latest",
-    "globals": "latest",
-    "prettier": "latest",
-    "typescript": "latest",
-    "typescript-eslint": "latest",
-    "vitest": "latest"
+    "@eslint/js": "10.0.1",
+    "eslint": "10.12.0",
+    "globals": "17.13.0",
+    "prettier": "3.9.9",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.0",
+    "vitest": "3.2.4"
+  },
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": "10.34.6"
   }
 }

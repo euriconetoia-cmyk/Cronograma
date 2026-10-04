@@ -165,6 +165,7 @@ model CourseVersion {
   course      Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
   active      Boolean        @default(true)
   modules     CourseModule[]
+  classGroups ClassGroup[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 

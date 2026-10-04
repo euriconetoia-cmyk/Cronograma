@@ -18,6 +18,14 @@ export interface ImportColumnMapping {
   meetingStartTime?: string;
   meetingEndTime?: string;
   recovery?: string;
+  itemType?: string;
+  itemOrder?: string;
+  curricularUnitId?: string;
+  meetingType?: string;
+  meetingHours?: string;
+  meetingTime?: string;
+  instructor?: string;
+  room?: string;
 }
 
 export interface ImportPreviewRow {

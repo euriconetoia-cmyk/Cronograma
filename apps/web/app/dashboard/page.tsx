@@ -38,7 +38,9 @@ export default function DashboardPage() {
     }
   }
 
-  useEffect(() => { void load(currentYear); }, []);
+  useEffect(() => {
+    void load(currentYear);
+  }, []);
 
   return (
     <main className="calendar-page">
@@ -65,7 +67,9 @@ export default function DashboardPage() {
             }}
           >
             {[currentYear - 1, currentYear, currentYear + 1, currentYear + 2].map((value) => (
-              <option key={value} value={value}>{value}</option>
+              <option key={value} value={value}>
+                {value}
+              </option>
             ))}
           </select>
         </label>
@@ -126,13 +130,7 @@ function Metric({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function Distribution({
-  title,
-  values,
-}: {
-  title: string;
-  values: Record<string, number>;
-}) {
+function Distribution({ title, values }: { title: string; values: Record<string, number> }) {
   const entries = Object.entries(values).sort((a, b) => b[1] - a[1]);
   const max = Math.max(...entries.map(([, value]) => value), 1);
 

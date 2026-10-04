@@ -28,16 +28,10 @@ describe('validateResourceConflicts', () => {
 
   it('detecta instrutor fora da disponibilidade', () => {
     const issues = validateResourceConflicts(
-      [
-        { id: 'a', date: '2027-03-01', startTime: '19:00', endTime: '22:00', instructorId: 'p1' },
-      ],
-      [
-        { personId: 'p1', weekday: 1, startTime: '08:00', endTime: '12:00' },
-      ],
+      [{ id: 'a', date: '2027-03-01', startTime: '19:00', endTime: '22:00', instructorId: 'p1' }],
+      [{ personId: 'p1', weekday: 1, startTime: '08:00', endTime: '12:00' }],
     );
 
-    expect(
-      issues.some((issue) => issue.code === 'INSTRUCTOR_OUTSIDE_AVAILABILITY'),
-    ).toBe(true);
+    expect(issues.some((issue) => issue.code === 'INSTRUCTOR_OUTSIDE_AVAILABILITY')).toBe(true);
   });
 });

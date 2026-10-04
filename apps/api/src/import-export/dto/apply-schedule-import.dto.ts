@@ -1,14 +1,49 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsDateString,
+  IsEnum,
+  Matches,
+  ArrayMinSize,
+  ArrayMaxSize,
   IsInt,
   IsOptional,
   IsString,
   Min,
   ValidateNested,
 } from 'class-validator';
+import { MeetingType, ScheduleItemType } from '@cronograma/database';
 
 export class ImportScheduleRowDto {
+  @IsOptional()
+  @IsEnum(ScheduleItemType)
+  itemType?: ScheduleItemType;
+
+  @IsOptional()
+  @IsEnum(MeetingType)
+  meetingType?: MeetingType;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  meetingHours?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  itemOrder?: number;
+
+  @IsOptional()
+  @IsString()
+  curricularUnitId?: string;
+
+  @IsOptional()
+  @IsString()
+  instructor?: string;
+
+  @IsOptional()
+  @IsString()
+  room?: string;
   @IsString()
   curricularUnit!: string;
 
@@ -17,14 +52,14 @@ export class ImportScheduleRowDto {
   @Min(0)
   totalHours?: number;
 
-  @IsString()
+  @IsDateString({ strict: true })
   startDate!: string;
 
-  @IsString()
+  @IsDateString({ strict: true })
   endDate!: string;
 
   @IsOptional()
-  @IsString()
+  @IsDateString({ strict: true })
   avaEndDate?: string;
 
   @IsOptional()
@@ -33,15 +68,17 @@ export class ImportScheduleRowDto {
   meetingNumber?: number;
 
   @IsOptional()
-  @IsString()
+  @IsDateString({ strict: true })
   meetingDate?: string;
 
   @IsOptional()
   @IsString()
+  @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/)
   meetingStartTime?: string;
 
   @IsOptional()
   @IsString()
+  @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/)
   meetingEndTime?: string;
 }
 
@@ -53,6 +90,8 @@ export class ApplyScheduleImportDto {
   actorName!: string;
 
   @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(5000)
   @ValidateNested({ each: true })
   @Type(() => ImportScheduleRowDto)
   rows!: ImportScheduleRowDto[];

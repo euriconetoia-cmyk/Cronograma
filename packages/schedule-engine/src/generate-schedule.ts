@@ -46,6 +46,11 @@ function allowedWeekdays(rules: ScheduleRuleInput[]): Weekday[] {
 function nextAcademicDate(date: Date, input: GenerateScheduleInput): Date {
   let cursor = new Date(date);
   for (let guard = 0; guard < 3700; guard += 1) {
+    if (input.academicYear !== undefined && cursor.getUTCFullYear() !== input.academicYear) {
+      throw new Error(
+        `O cronograma ultrapassa o ano letivo ${input.academicYear}. Configure o calendário do ano seguinte.`,
+      );
+    }
     const decision = isAcademicDay(cursor, {
       allowedWeekdays: allowedWeekdays(input.scheduleRules),
       restrictions: input.restrictions,
@@ -93,7 +98,7 @@ function allocateUnit(
     const hours = Math.min(requestedHours, ruleHours(used.rule));
     meetings.push({
       number: index + 1,
-      type: unit.requiresWebClass && !unit.requiresInPerson ? 'WEB_CLASS' : 'PRESENCIAL',
+      type: unit.requiresWebClass && !unit.requiresInPerson ? 'WEB_CLASS' : 'PRESENTIAL',
       date: isoDate(used.date),
       startTime: used.rule.startTime,
       endTime: used.rule.endTime,
@@ -102,6 +107,14 @@ function allocateUnit(
   }
 
   const avaDays = unit.avaExtraDays + input.classRules.avaExtraDays;
+  if (
+    input.academicYear !== undefined &&
+    addDays(lastDate, avaDays).getUTCFullYear() !== input.academicYear
+  ) {
+    throw new Error(
+      `O encerramento do AVA ultrapassa o ano letivo ${input.academicYear}. Configure o calendário correspondente.`,
+    );
+  }
   const item: GeneratedScheduleItem = {
     type: 'CURRICULAR_UNIT',
     curricularUnitId: unit.id,
@@ -127,9 +140,7 @@ export function generateSchedule(input: GenerateScheduleInput): GenerateSchedule
 
   const units = [...input.modules]
     .sort((a, b) => a.order - b.order)
-    .flatMap((module) =>
-      [...module.curricularUnits].sort((a, b) => a.order - b.order),
-    );
+    .flatMap((module) => [...module.curricularUnits].sort((a, b) => a.order - b.order));
 
   if (units.length === 0) {
     throw new Error('A matriz curricular não possui Unidades Curriculares.');

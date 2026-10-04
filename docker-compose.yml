@@ -6,11 +6,11 @@ services:
       POSTGRES_PASSWORD: cronograma
       POSTGRES_DB: cronograma
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - cronograma_postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cronograma -d cronograma"]
+      test: ['CMD-SHELL', 'pg_isready -U cronograma -d cronograma']
       interval: 5s
       timeout: 5s
       retries: 10

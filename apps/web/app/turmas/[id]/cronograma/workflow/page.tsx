@@ -60,7 +60,9 @@ export default function WorkflowPage() {
     }
   }
 
-  useEffect(() => { void load(); }, [id]);
+  useEffect(() => {
+    void load();
+  }, [id]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,10 +99,22 @@ export default function WorkflowPage() {
       {history && (
         <>
           <section className="calendar-summary">
-            <div><span>Status atual</span><strong>{history.status}</strong></div>
-            <div><span>Versões</span><strong>{history.versions.length}</strong></div>
-            <div><span>Decisões</span><strong>{history.approvals.length}</strong></div>
-            <div><span>Auditoria</span><strong>{history.audit.length}</strong></div>
+            <div>
+              <span>Status atual</span>
+              <strong>{history.status}</strong>
+            </div>
+            <div>
+              <span>Versões</span>
+              <strong>{history.versions.length}</strong>
+            </div>
+            <div>
+              <span>Decisões</span>
+              <strong>{history.approvals.length}</strong>
+            </div>
+            <div>
+              <span>Auditoria</span>
+              <strong>{history.audit.length}</strong>
+            </div>
           </section>
 
           <form className="form-card" onSubmit={submit}>
@@ -114,14 +128,20 @@ export default function WorkflowPage() {
                 Ação
                 <select name="action" required>
                   {actions.map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
                   ))}
                 </select>
               </label>
             </div>
             <label>
               Comentário
-              <textarea name="comment" rows={3} placeholder="Justificativa, orientação ou observação" />
+              <textarea
+                name="comment"
+                rows={3}
+                placeholder="Justificativa, orientação ou observação"
+              />
             </label>
             <button type="submit">Registrar ação</button>
           </form>
@@ -129,13 +149,17 @@ export default function WorkflowPage() {
           <section className="workflow-grid">
             <article className="form-card">
               <h2>Versões</h2>
-              {history.versions.length === 0 ? <p className="muted">Nenhuma versão registrada.</p> : (
+              {history.versions.length === 0 ? (
+                <p className="muted">Nenhuma versão registrada.</p>
+              ) : (
                 <ul className="timeline-list">
                   {history.versions.map((version) => (
                     <li key={version.id}>
                       <strong>Versão {version.version}</strong>
                       <span>{version.reason}</span>
-                      <small>{version.actorName} | {formatDateTime(version.createdAt)}</small>
+                      <small>
+                        {version.actorName} | {formatDateTime(version.createdAt)}
+                      </small>
                     </li>
                   ))}
                 </ul>
@@ -144,13 +168,17 @@ export default function WorkflowPage() {
 
             <article className="form-card">
               <h2>Aprovações</h2>
-              {history.approvals.length === 0 ? <p className="muted">Nenhuma decisão registrada.</p> : (
+              {history.approvals.length === 0 ? (
+                <p className="muted">Nenhuma decisão registrada.</p>
+              ) : (
                 <ul className="timeline-list">
                   {history.approvals.map((approval) => (
                     <li key={approval.id}>
                       <strong>{approval.decision}</strong>
                       <span>{approval.comment || 'Sem comentário'}</span>
-                      <small>{approval.actorName} | {formatDateTime(approval.createdAt)}</small>
+                      <small>
+                        {approval.actorName} | {formatDateTime(approval.createdAt)}
+                      </small>
                     </li>
                   ))}
                 </ul>
@@ -160,13 +188,17 @@ export default function WorkflowPage() {
 
           <section className="form-card">
             <h2>Trilha de auditoria</h2>
-            {history.audit.length === 0 ? <p className="muted">Nenhuma ação registrada.</p> : (
+            {history.audit.length === 0 ? (
+              <p className="muted">Nenhuma ação registrada.</p>
+            ) : (
               <ul className="timeline-list">
                 {history.audit.map((log) => (
                   <li key={log.id}>
                     <strong>{log.action}</strong>
                     <span>{log.reason || 'Sem justificativa'}</span>
-                    <small>{log.actorName} | {formatDateTime(log.createdAt)}</small>
+                    <small>
+                      {log.actorName} | {formatDateTime(log.createdAt)}
+                    </small>
                   </li>
                 ))}
               </ul>

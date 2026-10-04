@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { ApprovalDecision, ScheduleStatus } from '@cronograma/database';
-import { validateResourceConflicts, validateSchedule } from '@cronograma/validation-engine';
+import { ApprovalDecision, Prisma, ScheduleStatus } from '@cronograma/database';
+import { lockSchedule } from './schedule-protection';
+import { SchedulesService } from './schedules.service';
 import { DatabaseService } from '../database/database.service';
 import { VersioningService } from './versioning.service';
 
@@ -9,6 +10,7 @@ export class WorkflowService {
   constructor(
     private readonly database: DatabaseService,
     private readonly versioning: VersioningService,
+    private readonly schedulesService: SchedulesService,
   ) {}
 
   async submitForReview(classGroupId: string, actorName: string, comment?: string) {
@@ -26,16 +28,23 @@ export class WorkflowService {
     const schedule = await this.requireSchedule(classGroupId);
 
     if (schedule.status !== ScheduleStatus.REVIEW) {
-      throw new BadRequestException('Somente cronogramas em revisão podem ser enviados para aprovação.');
+      throw new BadRequestException(
+        'Somente cronogramas em revisão podem ser enviados para aprovação.',
+      );
     }
 
-    await this.ensureNoValidationErrors(classGroupId);
-
     const updated = await this.database.$transaction(async (tx) => {
-      const result = await tx.schedule.update({
-        where: { id: schedule.id },
+      const lockedStatus = await lockSchedule(tx, schedule.id);
+      if (lockedStatus !== ScheduleStatus.REVIEW)
+        throw new BadRequestException('O status foi alterado por outra operação.');
+      await this.ensureNoValidationErrors(classGroupId, tx);
+      const changed = await tx.schedule.updateMany({
+        where: { id: schedule.id, status: ScheduleStatus.REVIEW },
         data: { status: ScheduleStatus.AWAITING_APPROVAL },
       });
+      if (changed.count !== 1)
+        throw new BadRequestException('O status foi alterado por outra operação. Atualize a tela.');
+      const result = await tx.schedule.findUniqueOrThrow({ where: { id: schedule.id } });
 
       await tx.approval.create({
         data: {
@@ -56,7 +65,6 @@ export class WorkflowService {
   }
 
   async approve(classGroupId: string, actorName: string, comment?: string) {
-    await this.ensureNoValidationErrors(classGroupId);
     return this.decide(
       classGroupId,
       ApprovalDecision.APPROVED,
@@ -141,10 +149,18 @@ export class WorkflowService {
     }
 
     const updated = await this.database.$transaction(async (tx) => {
-      const result = await tx.schedule.update({
-        where: { id: schedule.id },
+      const lockedStatus = await lockSchedule(tx, schedule.id);
+      if (lockedStatus !== ScheduleStatus.AWAITING_APPROVAL)
+        throw new BadRequestException('O status foi alterado por outra operação.');
+      if (decision === ApprovalDecision.APPROVED)
+        await this.ensureNoValidationErrors(classGroupId, tx);
+      const changed = await tx.schedule.updateMany({
+        where: { id: schedule.id, status: ScheduleStatus.AWAITING_APPROVAL },
         data: { status: nextStatus },
       });
+      if (changed.count !== 1)
+        throw new BadRequestException('O status foi alterado por outra operação. Atualize a tela.');
+      const result = await tx.schedule.findUniqueOrThrow({ where: { id: schedule.id } });
 
       await tx.approval.create({
         data: {
@@ -180,9 +196,19 @@ export class WorkflowService {
       );
     }
 
-    const updated = await this.database.schedule.update({
-      where: { id: schedule.id },
-      data: { status: nextStatus },
+    const updated = await this.database.$transaction(async (tx) => {
+      const lockedStatus = await lockSchedule(tx, schedule.id);
+      if (!allowed.includes(lockedStatus))
+        throw new BadRequestException('O status foi alterado por outra operação.');
+      if (nextStatus === ScheduleStatus.PUBLISHED)
+        await this.ensureNoValidationErrors(classGroupId, tx);
+      const changed = await tx.schedule.updateMany({
+        where: { id: schedule.id, status: { in: allowed } },
+        data: { status: nextStatus },
+      });
+      if (changed.count !== 1)
+        throw new BadRequestException('O status foi alterado por outra operação. Atualize a tela.');
+      return tx.schedule.findUniqueOrThrow({ where: { id: schedule.id } });
     });
 
     await this.versioning.createVersion(schedule.id, actorName, action);
@@ -191,117 +217,18 @@ export class WorkflowService {
     return updated;
   }
 
-  private async ensureNoValidationErrors(classGroupId: string) {
-    const schedule = await this.database.schedule.findUnique({
-      where: { classGroupId },
-      include: {
-        items: {
-          include: {
-            curricularUnit: true,
-            meetings: {
-              include: {
-                room: true,
-              },
-            },
-          },
-          orderBy: { order: 'asc' },
-        },
-        classGroup: {
-          include: {
-            academicCalendar: {
-              include: { events: true },
-            },
-          },
-        },
-      },
-    });
-
-    if (!schedule) {
-      throw new NotFoundException('Cronograma não encontrado.');
-    }
-
-    const issues = validateSchedule({
-      endDateLimit: schedule.classGroup.endDateLimit?.toISOString().slice(0, 10),
-      restrictions: schedule.classGroup.academicCalendar.events.map((event) => ({
-        startDate: event.startDate.toISOString().slice(0, 10),
-        endDate: event.endDate.toISOString().slice(0, 10),
-        blocksAcademicActivities: event.blocksAcademicActivities,
-        reason: event.title,
-      })),
-      items: schedule.items.map((item) => ({
-        title: item.title,
-        type: item.type,
-        startDate: item.startDate.toISOString().slice(0, 10),
-        endDate: item.endDate.toISOString().slice(0, 10),
-        avaEndDate: item.avaEndDate?.toISOString().slice(0, 10),
-        totalHours: item.totalHours,
-        expectedHours: item.curricularUnit?.totalHours,
-        requiredMeetingCount: item.curricularUnit?.meetingCount,
-        meetings: item.meetings.map((meeting) => ({
-          date: meeting.date.toISOString().slice(0, 10),
-          startTime: meeting.startTime,
-          endTime: meeting.endTime,
-        })),
-      })),
-    });
-
-    const resourceMeetings = schedule.items.flatMap((item) =>
-      item.meetings.map((meeting) => ({
-        id: meeting.id,
-        title: item.title,
-        date: meeting.date.toISOString().slice(0, 10),
-        startTime: meeting.startTime,
-        endTime: meeting.endTime,
-        instructorId: meeting.instructorId,
-        roomId: meeting.roomId,
-        roomCapacity: meeting.room?.capacity,
-        expectedStudents: schedule.classGroup.expectedStudents,
-      })),
-    );
-
-    const instructorIds = [
-      ...new Set(
-        resourceMeetings
-          .map((meeting) => meeting.instructorId)
-          .filter((id): id is string => Boolean(id)),
-      ),
-    ];
-
-    const availabilities = instructorIds.length
-      ? await this.database.personAvailability.findMany({
-          where: {
-            personId: { in: instructorIds },
-            active: true,
-          },
-        })
-      : [];
-
-    const weekdayNumber = {
-      SUNDAY: 0,
-      MONDAY: 1,
-      TUESDAY: 2,
-      WEDNESDAY: 3,
-      THURSDAY: 4,
-      FRIDAY: 5,
-      SATURDAY: 6,
-    } as const;
-
-    const resourceIssues = validateResourceConflicts(
-      resourceMeetings,
-      availabilities.map((item) => ({
-        personId: item.personId,
-        weekday: weekdayNumber[item.weekday],
-        startTime: item.startTime,
-        endTime: item.endTime,
-      })),
-    );
-
-    const errors = [...issues, ...resourceIssues].filter(
-      (issue) => issue.severity === 'ERROR',
-    );
-    if (errors.length > 0) {
+  private async ensureNoValidationErrors(
+    classGroupId: string,
+    database?: Prisma.TransactionClient,
+  ) {
+    const [issues, resourceIssues] = await Promise.all([
+      this.schedulesService.validate(classGroupId, database),
+      this.schedulesService.resourceConflicts(classGroupId, database),
+    ]);
+    const errors = [...issues, ...resourceIssues].filter((issue) => issue.severity === 'ERROR');
+    if (errors.length) {
       throw new BadRequestException(
-        `O cronograma possui ${errors.length} erro(s) de validação e não pode avançar para aprovação.`,
+        `O cronograma possui ${errors.length} erro(s) e não pode avançar: ${errors.map((issue) => issue.message).join(' ')}`,
       );
     }
   }

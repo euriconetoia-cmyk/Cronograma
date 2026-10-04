@@ -19,10 +19,7 @@ export class ImportExportController {
   constructor(private readonly service: ImportExportService) {}
 
   @Get('schedules/:classGroupId.xlsx')
-  async exportExcel(
-    @Param('classGroupId') classGroupId: string,
-    @Res() response: Response,
-  ) {
+  async exportExcel(@Param('classGroupId') classGroupId: string, @Res() response: Response) {
     const buffer = await this.service.exportScheduleExcel(classGroupId);
     response.setHeader(
       'Content-Type',
@@ -36,10 +33,7 @@ export class ImportExportController {
   }
 
   @Get('schedules/:classGroupId.csv')
-  async exportCsv(
-    @Param('classGroupId') classGroupId: string,
-    @Res() response: Response,
-  ) {
+  async exportCsv(@Param('classGroupId') classGroupId: string, @Res() response: Response) {
     const csv = await this.service.exportScheduleCsv(classGroupId);
     response.setHeader('Content-Type', 'text/csv; charset=utf-8');
     response.setHeader(
@@ -60,8 +54,7 @@ export class ImportExportController {
       limits: { fileSize: 10 * 1024 * 1024 },
       fileFilter: (_request, file, callback) => {
         const allowed =
-          file.mimetype ===
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+          file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
           file.originalname.toLowerCase().endsWith('.xlsx');
 
         callback(

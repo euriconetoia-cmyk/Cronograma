@@ -42,7 +42,9 @@ export default function ClassDetailPage() {
     setPeople(peopleData);
   }
 
-  useEffect(() => { void load(); }, [id]);
+  useEffect(() => {
+    void load();
+  }, [id]);
 
   async function addPerson(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -62,7 +64,11 @@ export default function ClassDetailPage() {
   }
 
   if (!classGroup) {
-    return <main className="calendar-page"><p>Carregando turma...</p></main>;
+    return (
+      <main className="calendar-page">
+        <p>Carregando turma...</p>
+      </main>
+    );
   }
 
   return (
@@ -71,7 +77,9 @@ export default function ClassDetailPage() {
         <div>
           <p className="eyebrow">Turma</p>
           <h1>{classGroup.code}</h1>
-          <p className="lead">{classGroup.course.name} | Matriz {classGroup.courseVersion.name}</p>
+          <p className="lead">
+            {classGroup.course.name} | Matriz {classGroup.courseVersion.name}
+          </p>
         </div>
         <div className="header-actions">
           <Link href={`/turmas/${id}/cronograma`}>Gerar cronograma</Link>
@@ -83,24 +91,46 @@ export default function ClassDetailPage() {
       </header>
 
       <section className="calendar-summary">
-        <div><span>Unidade</span><strong>{classGroup.unit.name}</strong></div>
-        <div><span>Modalidade</span><strong>{classGroup.modality.name}</strong></div>
-        <div><span>Calendário</span><strong>{classGroup.academicCalendar.year}</strong></div>
-        <div><span>Dias semanais</span><strong>{classGroup.scheduleRules.length}</strong></div>
+        <div>
+          <span>Unidade</span>
+          <strong>{classGroup.unit.name}</strong>
+        </div>
+        <div>
+          <span>Modalidade</span>
+          <strong>{classGroup.modality.name}</strong>
+        </div>
+        <div>
+          <span>Calendário</span>
+          <strong>{classGroup.academicCalendar.year}</strong>
+        </div>
+        <div>
+          <span>Dias semanais</span>
+          <strong>{classGroup.scheduleRules.length}</strong>
+        </div>
       </section>
 
       <section className="calendar-forms">
         <form className="form-card" onSubmit={addPerson}>
           <h2>Vincular equipe</h2>
-          <label>Pessoa
+          <label>
+            Pessoa
             <select name="personId" required>
               <option value="">Selecione</option>
-              {people.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
+              {people.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
             </select>
           </label>
-          <label>Função
+          <label>
+            Função
             <select name="role" required>
-              {roles.map(([value,label]) => <option key={value} value={value}>{label}</option>)}
+              {roles.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
             </select>
           </label>
           <button type="submit">Vincular pessoa</button>
@@ -130,7 +160,9 @@ export default function ClassDetailPage() {
           {classGroup.scheduleRules.map((rule) => (
             <article className="weekday-card" key={rule.weekday}>
               <strong>{rule.weekday}</strong>
-              <span>{rule.startTime} às {rule.endTime}</span>
+              <span>
+                {rule.startTime} às {rule.endTime}
+              </span>
             </article>
           ))}
         </div>

@@ -34,8 +34,18 @@ type AnnualData = {
 };
 
 const monthNames = [
-  'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
 ];
 
 export default function AnnualPlanningPage() {
@@ -53,7 +63,9 @@ export default function AnnualPlanningPage() {
     }
   }
 
-  useEffect(() => { void load(currentYear); }, []);
+  useEffect(() => {
+    void load(currentYear);
+  }, []);
 
   return (
     <main className="calendar-page">
@@ -62,7 +74,8 @@ export default function AnnualPlanningPage() {
           <p className="eyebrow">Planejamento</p>
           <h1>Planejamento Anual</h1>
           <p className="lead">
-            Visualize quando as turmas iniciam, a carga planejada e a distribuição das operações ao longo do ano.
+            Visualize quando as turmas iniciam, a carga planejada e a distribuição das operações ao
+            longo do ano.
           </p>
         </div>
         <Link href="/dashboard">Dashboard</Link>
@@ -80,7 +93,9 @@ export default function AnnualPlanningPage() {
             }}
           >
             {[currentYear - 1, currentYear, currentYear + 1, currentYear + 2].map((value) => (
-              <option key={value} value={value}>{value}</option>
+              <option key={value} value={value}>
+                {value}
+              </option>
             ))}
           </select>
         </label>
@@ -91,10 +106,22 @@ export default function AnnualPlanningPage() {
       {data && (
         <>
           <section className="calendar-summary">
-            <div><span>Turmas</span><strong>{data.totals.classes}</strong></div>
-            <div><span>CH planejada</span><strong>{data.totals.plannedHours} h</strong></div>
-            <div><span>Cronogramas</span><strong>{data.totals.schedules}</strong></div>
-            <div><span>Ano</span><strong>{data.year}</strong></div>
+            <div>
+              <span>Turmas</span>
+              <strong>{data.totals.classes}</strong>
+            </div>
+            <div>
+              <span>CH planejada</span>
+              <strong>{data.totals.plannedHours} h</strong>
+            </div>
+            <div>
+              <span>Cronogramas</span>
+              <strong>{data.totals.schedules}</strong>
+            </div>
+            <div>
+              <span>Ano</span>
+              <strong>{data.year}</strong>
+            </div>
           </section>
 
           <section className="annual-planning-grid">
@@ -122,7 +149,9 @@ export default function AnnualPlanningPage() {
                         <Link href={`/turmas/${item.id}`}>
                           <strong>{item.code}</strong>
                           <span>{item.course}</span>
-                          <small>{formatDate(item.startDate)} | {item.unit}</small>
+                          <small>
+                            {formatDate(item.startDate)} | {item.unit}
+                          </small>
                         </Link>
                       </li>
                     ))}
