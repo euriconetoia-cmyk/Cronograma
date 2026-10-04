@@ -52,7 +52,7 @@ const groups: NavGroup[] = [
   {
     label: 'Catálogo',
     items: [
-      { href: '/catalogo/cursos', label: 'Cursos e matrizes', icon: 'book', match: '/catalogo' },
+      { href: '/catalogo', label: 'Cursos e matrizes', icon: 'book', match: 'catalogo-core' },
       { href: '/catalogo/unidades', label: 'Unidades', icon: 'building' },
       { href: '/catalogo/modalidades', label: 'Modalidades', icon: 'layers' },
     ],
@@ -67,8 +67,7 @@ const groups: NavGroup[] = [
   {
     label: 'Controle',
     items: [
-      { href: '/relatorios', label: 'Validações e conflitos', icon: 'warning' },
-      { href: '/relatorios', label: 'Relatórios', icon: 'report' },
+      { href: '/relatorios', label: 'Relatórios e conflitos', icon: 'report' },
     ],
   },
   {
@@ -86,7 +85,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   const isActive = (item: NavItem) => {
     if (item.match === '/turmas/') return pathname.startsWith('/turmas/') && pathname !== '/turmas';
-    if (item.match === '/catalogo') return pathname.startsWith('/catalogo');
+    if (item.match === 'catalogo-core') {
+      return pathname === '/catalogo' || pathname.startsWith('/catalogo/cursos') || pathname.startsWith('/catalogo/matrizes');
+    }
     return pathname === item.href || pathname.startsWith(`${item.href}/`);
   };
 
