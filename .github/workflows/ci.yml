@@ -9,6 +9,8 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://cronograma:cronograma@localhost:5432/cronograma?schema=public
 
     steps:
       - name: Checkout
@@ -17,7 +19,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.34.6
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -25,7 +27,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Format check
         run: pnpm format:check

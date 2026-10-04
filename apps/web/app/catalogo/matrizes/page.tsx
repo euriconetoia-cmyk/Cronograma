@@ -31,10 +31,7 @@ export default function MatricesPage() {
     void load();
   }, []);
 
-  const modules = useMemo(
-    () => versions.flatMap((version) => version.modules),
-    [versions],
-  );
+  const modules = useMemo(() => versions.flatMap((version) => version.modules), [versions]);
 
   async function submitVersion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -104,7 +101,8 @@ export default function MatricesPage() {
       <p className="eyebrow">Catálogo</p>
       <h1>Matrizes curriculares</h1>
       <p className="lead">
-        Crie a versão da matriz, organize os módulos e registre as Unidades Curriculares com suas cargas e regras iniciais.
+        Crie a versão da matriz, organize os módulos e registre as Unidades Curriculares com suas
+        cargas e regras iniciais.
       </p>
 
       <div className="three-column">
@@ -115,7 +113,9 @@ export default function MatricesPage() {
             <select name="courseId" required>
               <option value="">Selecione</option>
               {courses.map((item) => (
-                <option key={item.id} value={item.id}>{item.name}</option>
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
               ))}
             </select>
           </label>
@@ -139,9 +139,18 @@ export default function MatricesPage() {
               ))}
             </select>
           </label>
-          <label>Nome<input name="name" required /></label>
-          <label>Código<input name="code" /></label>
-          <label>Ordem<input name="order" type="number" min="1" required /></label>
+          <label>
+            Nome
+            <input name="name" required />
+          </label>
+          <label>
+            Código
+            <input name="code" />
+          </label>
+          <label>
+            Ordem
+            <input name="order" type="number" min="1" required />
+          </label>
           <button type="submit">Adicionar módulo</button>
         </form>
 
@@ -152,24 +161,56 @@ export default function MatricesPage() {
             <select name="moduleId" required>
               <option value="">Selecione</option>
               {modules.map((item) => (
-                <option key={item.id} value={item.id}>{item.name}</option>
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
               ))}
             </select>
           </label>
-          <label>Nome<input name="name" required /></label>
+          <label>
+            Nome
+            <input name="name" required />
+          </label>
           <div className="form-grid">
-            <label>Código<input name="code" /></label>
-            <label>Ordem<input name="order" type="number" min="1" required /></label>
-            <label>CH total<input name="totalHours" type="number" min="1" required /></label>
-            <label>CH presencial<input name="inPersonHours" type="number" min="0" defaultValue="0" /></label>
-            <label>CH EaD<input name="eadHours" type="number" min="0" defaultValue="0" /></label>
-            <label>Encontros<input name="meetingCount" type="number" min="0" defaultValue="0" /></label>
-            <label>Dias extras AVA<input name="avaExtraDays" type="number" min="0" defaultValue="0" /></label>
+            <label>
+              Código
+              <input name="code" />
+            </label>
+            <label>
+              Ordem
+              <input name="order" type="number" min="1" required />
+            </label>
+            <label>
+              CH total
+              <input name="totalHours" type="number" min="1" required />
+            </label>
+            <label>
+              CH presencial
+              <input name="inPersonHours" type="number" min="0" defaultValue="0" />
+            </label>
+            <label>
+              CH EaD
+              <input name="eadHours" type="number" min="0" defaultValue="0" />
+            </label>
+            <label>
+              Encontros
+              <input name="meetingCount" type="number" min="0" defaultValue="0" />
+            </label>
+            <label>
+              Dias extras AVA
+              <input name="avaExtraDays" type="number" min="0" defaultValue="0" />
+            </label>
           </div>
           <div className="check-grid">
-            <label><input name="requiresInPerson" type="checkbox" /> Encontro presencial obrigatório</label>
-            <label><input name="requiresWebClass" type="checkbox" /> Webaula obrigatória</label>
-            <label><input name="recoveryEnabled" type="checkbox" /> Recuperação</label>
+            <label>
+              <input name="requiresInPerson" type="checkbox" /> Encontro presencial obrigatório
+            </label>
+            <label>
+              <input name="requiresWebClass" type="checkbox" /> Webaula obrigatória
+            </label>
+            <label>
+              <input name="recoveryEnabled" type="checkbox" /> Recuperação
+            </label>
           </div>
           <button type="submit">Adicionar UC</button>
         </form>
@@ -190,18 +231,24 @@ export default function MatricesPage() {
               <div>
                 <span>{version.course.name}</span>
                 <h2>Matriz {version.name}</h2>
-                <p>{version.modules.length} módulo(s) | {totalHours} h cadastradas</p>
+                <p>
+                  {version.modules.length} módulo(s) | {totalHours} h cadastradas
+                </p>
               </div>
 
               {version.modules.map((module) => (
                 <div className="module-block" key={module.id}>
-                  <strong>{module.order}. {module.name}</strong>
+                  <strong>
+                    {module.order}. {module.name}
+                  </strong>
                   {module.curricularUnits.length === 0 ? (
                     <p>Sem UCs cadastradas.</p>
                   ) : (
                     <ul>
                       {module.curricularUnits.map((unit) => (
-                        <li key={unit.id}>{unit.name} | {unit.totalHours} h</li>
+                        <li key={unit.id}>
+                          {unit.name} | {unit.totalHours} h
+                        </li>
                       ))}
                     </ul>
                   )}

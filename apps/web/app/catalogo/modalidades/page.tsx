@@ -20,7 +20,9 @@ export default function ModalitiesPage() {
     setItems(await apiGet<Modality[]>('/modalities'));
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,16 +53,37 @@ export default function ModalitiesPage() {
       <h1>Modalidades</h1>
       <form className="form-card" onSubmit={submit}>
         <div className="form-grid">
-          <label>Nome<input name="name" required /></label>
-          <label>Código<input name="code" required /></label>
-          <label>CH diária padrão<input name="defaultDailyHours" type="number" min="1" /></label>
-          <label>Dias extras de AVA<input name="defaultAvaExtraDays" type="number" min="0" defaultValue="0" /></label>
+          <label>
+            Nome
+            <input name="name" required />
+          </label>
+          <label>
+            Código
+            <input name="code" required />
+          </label>
+          <label>
+            CH diária padrão
+            <input name="defaultDailyHours" type="number" min="1" />
+          </label>
+          <label>
+            Dias extras de AVA
+            <input name="defaultAvaExtraDays" type="number" min="0" defaultValue="0" />
+          </label>
         </div>
         <div className="check-grid">
-          <label><input name="allowsEad" type="checkbox" /> Permite EaD</label>
-          <label><input name="allowsSynchronous" type="checkbox" /> Permite síncrono</label>
-          <label><input name="allowsInPersonMeetings" type="checkbox" defaultChecked /> Permite encontros presenciais</label>
-          <label><input name="allowsWebClasses" type="checkbox" /> Permite webaulas</label>
+          <label>
+            <input name="allowsEad" type="checkbox" /> Permite EaD
+          </label>
+          <label>
+            <input name="allowsSynchronous" type="checkbox" /> Permite síncrono
+          </label>
+          <label>
+            <input name="allowsInPersonMeetings" type="checkbox" defaultChecked /> Permite encontros
+            presenciais
+          </label>
+          <label>
+            <input name="allowsWebClasses" type="checkbox" /> Permite webaulas
+          </label>
         </div>
         <button type="submit">Cadastrar modalidade</button>
         {message && <p className="form-message">{message}</p>}
@@ -68,11 +91,20 @@ export default function ModalitiesPage() {
 
       <div className="table-card">
         <table>
-          <thead><tr><th>Nome</th><th>Código</th><th>EaD</th><th>Presencial</th><th>Webaula</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Código</th>
+              <th>EaD</th>
+              <th>Presencial</th>
+              <th>Webaula</th>
+            </tr>
+          </thead>
           <tbody>
             {items.map((item) => (
               <tr key={item.id}>
-                <td>{item.name}</td><td>{item.code}</td>
+                <td>{item.name}</td>
+                <td>{item.code}</td>
                 <td>{item.allowsEad ? 'Sim' : 'Não'}</td>
                 <td>{item.allowsInPersonMeetings ? 'Sim' : 'Não'}</td>
                 <td>{item.allowsWebClasses ? 'Sim' : 'Não'}</td>

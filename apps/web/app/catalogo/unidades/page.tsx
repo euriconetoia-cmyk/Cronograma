@@ -49,10 +49,22 @@ export default function UnitsPage() {
       <h1>Unidades</h1>
       <form className="form-card" onSubmit={submit}>
         <div className="form-grid">
-          <label>Nome<input name="name" required /></label>
-          <label>Código<input name="code" required /></label>
-          <label>Cidade<input name="city" required /></label>
-          <label>UF<input name="state" maxLength={2} required /></label>
+          <label>
+            Nome
+            <input name="name" required />
+          </label>
+          <label>
+            Código
+            <input name="code" required />
+          </label>
+          <label>
+            Cidade
+            <input name="city" required />
+          </label>
+          <label>
+            UF
+            <input name="state" maxLength={2} required />
+          </label>
         </div>
         <button type="submit">Cadastrar unidade</button>
         {message && <p className="form-message">{message}</p>}
@@ -60,12 +72,23 @@ export default function UnitsPage() {
 
       <div className="table-card">
         <table>
-          <thead><tr><th>Nome</th><th>Código</th><th>Cidade</th><th>UF</th><th>Status</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Código</th>
+              <th>Cidade</th>
+              <th>UF</th>
+              <th>Status</th>
+            </tr>
+          </thead>
           <tbody>
             {items.map((item) => (
               <tr key={item.id}>
-                <td>{item.name}</td><td>{item.code}</td><td>{item.city}</td>
-                <td>{item.state}</td><td>{item.active ? 'Ativa' : 'Inativa'}</td>
+                <td>{item.name}</td>
+                <td>{item.code}</td>
+                <td>{item.city}</td>
+                <td>{item.state}</td>
+                <td>{item.active ? 'Ativa' : 'Inativa'}</td>
               </tr>
             ))}
           </tbody>

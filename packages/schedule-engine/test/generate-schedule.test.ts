@@ -38,6 +38,11 @@ const baseInput = {
 };
 
 describe('generateSchedule', () => {
+  it('não usa calendário de um ano para gerar encontros em outro ano', () => {
+    expect(() =>
+      generateSchedule({ ...baseInput, academicYear: 2026, startDate: '2026-12-31' }),
+    ).toThrow(/ano letivo/);
+  });
   it('distribui a UC conforme os dias e horários permitidos', () => {
     const result = generateSchedule(baseInput);
 
@@ -76,7 +81,7 @@ describe('generateSchedule', () => {
       },
       modules: [
         {
-          ...baseInput.modules[0],
+          ...baseInput.modules[0]!,
           curricularUnits: [
             {
               ...baseInput.modules[0]!.curricularUnits[0]!,

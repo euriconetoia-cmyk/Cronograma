@@ -7,21 +7,26 @@ Separar claramente apresentação, regras de negócio, persistência, autentica�
 ## Stack sugerida
 
 ### Frontend
+
 - TypeScript
 - React
 - Next.js
 
 ### Backend
+
 - TypeScript
 - NestJS
 
 ### Banco
+
 - PostgreSQL
 
 ### ORM
+
 - Prisma
 
 ### Testes
+
 - Vitest ou Jest para unitários
 - Supertest para integração
 - Playwright para end to end
@@ -48,24 +53,31 @@ packages/
 ## Responsabilidades
 
 ### apps/web
+
 Interface administrativa.
 
 ### apps/api
+
 API, autenticação, autorização, orquestração e acesso aos serviços.
 
 ### schedule-engine
+
 Cálculo de cronogramas.
 
 ### validation-engine
+
 Validação de regras e conflitos.
 
 ### database
+
 Schema, migrations, seeds e repositórios.
 
 ### export
+
 Excel, PDF e CSV.
 
 ### import
+
 Leitura e mapeamento de planilhas.
 
 ## Regras arquiteturais

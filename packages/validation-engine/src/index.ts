@@ -2,6 +2,7 @@ export interface ValidationIssue {
   code: string;
   severity: 'ERROR' | 'WARNING' | 'INFO';
   message: string;
+  meetingIds?: string[];
 }
 
 export interface CurricularUnitHours {
@@ -43,13 +44,13 @@ export function validateCurricularUnitHours(data: CurricularUnitHours): Validati
     issues.push({
       code: 'UC_SYNC_HOURS_EXCEED_TOTAL',
       severity: 'ERROR',
-      message: 'A soma das cargas síncrona e assíncrona não pode superar a carga horária total da UC.',
+      message:
+        'A soma das cargas síncrona e assíncrona não pode superar a carga horária total da UC.',
     });
   }
 
   return issues;
 }
-
 
 export function validateTimeWindow(startTime: string, endTime: string): ValidationIssue[] {
   if (endTime <= startTime) {
@@ -64,7 +65,6 @@ export function validateTimeWindow(startTime: string, endTime: string): Validati
 
   return [];
 }
-
 
 export interface ScheduleValidationMeeting {
   date: string;
@@ -96,6 +96,9 @@ export interface ValidateScheduleInput {
   items: ScheduleValidationItem[];
   restrictions?: ScheduleValidationRestriction[];
   endDateLimit?: string;
+  courseTotalHours?: number;
+  matrixTotalHours?: number;
+  academicYear?: number;
 }
 
 function dateInsideRange(date: string, start: string, end: string): boolean {
@@ -105,6 +108,27 @@ function dateInsideRange(date: string, start: string, end: string): boolean {
 export function validateSchedule(input: ValidateScheduleInput): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const restrictions = input.restrictions ?? [];
+  const total = input.items
+    .filter((item) => item.type === 'CURRICULAR_UNIT')
+    .reduce((sum, item) => sum + item.totalHours, 0);
+  if (
+    input.courseTotalHours !== undefined &&
+    (total !== input.courseTotalHours ||
+      (input.matrixTotalHours !== undefined && input.matrixTotalHours !== input.courseTotalHours))
+  ) {
+    issues.push({
+      code: 'COURSE_HOURS_MISMATCH',
+      severity: 'ERROR',
+      message: `As UCs do cronograma somam ${total}h e as da matriz ${input.matrixTotalHours ?? total}h; o curso exige ${input.courseTotalHours}h.`,
+    });
+  }
+  if (input.matrixTotalHours !== undefined && total !== input.matrixTotalHours) {
+    issues.push({
+      code: 'MATRIX_HOURS_MISMATCH',
+      severity: 'ERROR',
+      message: `As UCs do cronograma somam ${total}h; a matriz exige ${input.matrixTotalHours}h.`,
+    });
+  }
 
   if (input.items.length === 0) {
     issues.push({
@@ -118,6 +142,22 @@ export function validateSchedule(input: ValidateScheduleInput): ValidationIssue[
   for (let index = 0; index < input.items.length; index += 1) {
     const item = input.items[index]!;
     const previous = input.items[index - 1];
+    const dates = [
+      item.startDate,
+      item.endDate,
+      ...(item.avaEndDate ? [item.avaEndDate] : []),
+      ...(item.meetings ?? []).map((meeting) => meeting.date),
+    ];
+    if (
+      input.academicYear !== undefined &&
+      dates.some((date) => Number(date.slice(0, 4)) !== input.academicYear)
+    ) {
+      issues.push({
+        code: 'SCHEDULE_OUTSIDE_ACADEMIC_YEAR',
+        severity: 'ERROR',
+        message: `"${item.title}" ultrapassa o ano letivo ${input.academicYear}. Configure o calendário do ano correspondente antes de continuar.`,
+      });
+    }
 
     if (item.endDate < item.startDate) {
       issues.push({
@@ -174,6 +214,13 @@ export function validateSchedule(input: ValidateScheduleInput): ValidationIssue[
     }
 
     for (const meeting of item.meetings ?? []) {
+      if (!dateInsideRange(meeting.date, item.startDate, item.endDate)) {
+        issues.push({
+          code: 'MEETING_OUTSIDE_ITEM_PERIOD',
+          severity: 'ERROR',
+          message: `Encontro de "${item.title}" em ${meeting.date} está fora do período ${item.startDate} a ${item.endDate}.`,
+        });
+      }
       const blocked = restrictions.find(
         (restriction) =>
           restriction.blocksAcademicActivities &&
@@ -218,7 +265,6 @@ export function validateSchedule(input: ValidateScheduleInput): ValidationIssue[
   return issues;
 }
 
-
 export interface ResourceMeeting {
   id: string;
   date: string;
@@ -229,6 +275,9 @@ export interface ResourceMeeting {
   roomCapacity?: number | null;
   expectedStudents?: number | null;
   title?: string;
+  instructorName?: string;
+  roomName?: string;
+  classCode?: string;
 }
 
 export interface PersonAvailabilityWindow {
@@ -238,12 +287,7 @@ export interface PersonAvailabilityWindow {
   endTime: string;
 }
 
-function timeOverlap(
-  startA: string,
-  endA: string,
-  startB: string,
-  endB: string,
-): boolean {
+function timeOverlap(startA: string, endA: string, startB: string, endB: string): boolean {
   return startA < endB && startB < endA;
 }
 
@@ -259,48 +303,39 @@ export function validateResourceConflicts(
 
   for (let i = 0; i < meetings.length; i += 1) {
     const current = meetings[i]!;
-    const sameDay = meetings.filter(
-      (meeting, index) => index !== i && meeting.date === current.date,
-    );
+    const sameDay = meetings.filter((meeting, index) => index > i && meeting.date === current.date);
 
     if (current.instructorId) {
-      const instructorConflict = sameDay.find(
+      const instructorConflicts = sameDay.filter(
         (meeting) =>
           meeting.instructorId === current.instructorId &&
-          timeOverlap(
-            current.startTime,
-            current.endTime,
-            meeting.startTime,
-            meeting.endTime,
-          ),
+          timeOverlap(current.startTime, current.endTime, meeting.startTime, meeting.endTime),
       );
 
-      if (instructorConflict && current.id < instructorConflict.id) {
+      for (const instructorConflict of instructorConflicts) {
         issues.push({
           code: 'INSTRUCTOR_CONFLICT',
           severity: 'ERROR',
-          message: `Instrutor possui encontros sobrepostos em ${current.date}.`,
+          message: `Instrutor ${current.instructorName ?? current.instructorId} possui encontros sobrepostos nas turmas ${current.classCode ?? current.title ?? current.id} e ${instructorConflict.classCode ?? instructorConflict.title ?? instructorConflict.id} em ${current.date} (${current.startTime}–${current.endTime} / ${instructorConflict.startTime}–${instructorConflict.endTime}).`,
+          meetingIds: [current.id, instructorConflict.id],
         });
       }
 
       const windows = availability.filter(
         (window) =>
-          window.personId === current.instructorId &&
-          window.weekday === isoWeekday(current.date),
+          window.personId === current.instructorId && window.weekday === isoWeekday(current.date),
       );
 
       if (
-        windows.length > 0 &&
         !windows.some(
-          (window) =>
-            current.startTime >= window.startTime &&
-            current.endTime <= window.endTime,
+          (window) => current.startTime >= window.startTime && current.endTime <= window.endTime,
         )
       ) {
         issues.push({
           code: 'INSTRUCTOR_OUTSIDE_AVAILABILITY',
           severity: 'ERROR',
-          message: `Instrutor está fora da disponibilidade cadastrada em ${current.date}.`,
+          message: `Instrutor ${current.instructorName ?? current.instructorId}, turma ${current.classCode ?? current.title ?? current.id}, está sem disponibilidade para ${current.date} (${current.startTime}–${current.endTime}).`,
+          meetingIds: [current.id],
         });
       }
     }
@@ -308,6 +343,7 @@ export function validateResourceConflicts(
     if (!current.instructorId) {
       issues.push({
         code: 'INSTRUCTOR_NOT_ASSIGNED',
+        meetingIds: [current.id],
         severity: 'WARNING',
         message: `Encontro de "${current.title ?? 'atividade'}" não possui instrutor definido.`,
       });
@@ -316,6 +352,7 @@ export function validateResourceConflicts(
     if (!current.roomId) {
       issues.push({
         code: 'ROOM_NOT_ASSIGNED',
+        meetingIds: [current.id],
         severity: 'WARNING',
         message: `Encontro de "${current.title ?? 'atividade'}" não possui sala ou laboratório definido.`,
       });
@@ -328,28 +365,25 @@ export function validateResourceConflicts(
     ) {
       issues.push({
         code: 'ROOM_CAPACITY_INSUFFICIENT',
+        meetingIds: [current.id],
         severity: 'ERROR',
         message: `A capacidade do recurso é inferior aos ${current.expectedStudents} alunos previstos.`,
       });
     }
 
     if (current.roomId) {
-      const roomConflict = sameDay.find(
+      const roomConflicts = sameDay.filter(
         (meeting) =>
           meeting.roomId === current.roomId &&
-          timeOverlap(
-            current.startTime,
-            current.endTime,
-            meeting.startTime,
-            meeting.endTime,
-          ),
+          timeOverlap(current.startTime, current.endTime, meeting.startTime, meeting.endTime),
       );
 
-      if (roomConflict && current.id < roomConflict.id) {
+      for (const roomConflict of roomConflicts) {
         issues.push({
           code: 'ROOM_CONFLICT',
           severity: 'ERROR',
-          message: `Sala ou laboratório possui encontros sobrepostos em ${current.date}.`,
+          message: `Sala/laboratório ${current.roomName ?? current.roomId} possui encontros sobrepostos nas turmas ${current.classCode ?? current.title ?? current.id} e ${roomConflict.classCode ?? roomConflict.title ?? roomConflict.id} em ${current.date}.`,
+          meetingIds: [current.id, roomConflict.id],
         });
       }
     }

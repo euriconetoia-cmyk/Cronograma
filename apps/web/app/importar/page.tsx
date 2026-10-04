@@ -25,6 +25,13 @@ type PreviewRow = {
     meetingDate?: string | null;
     meetingStartTime?: string | null;
     meetingEndTime?: string | null;
+    itemType?: string | null;
+    itemOrder?: number | null;
+    curricularUnitId?: string | null;
+    meetingType?: string | null;
+    meetingHours?: number | null;
+    instructor?: string | null;
+    room?: string | null;
   };
   errors: string[];
   warnings: string[];
@@ -112,6 +119,13 @@ export default function ImportPage() {
       meetingDate: row.normalized.meetingDate || undefined,
       meetingStartTime: row.normalized.meetingStartTime || undefined,
       meetingEndTime: row.normalized.meetingEndTime || undefined,
+      itemType: row.normalized.itemType || undefined,
+      itemOrder: row.normalized.itemOrder ?? undefined,
+      curricularUnitId: row.normalized.curricularUnitId || undefined,
+      meetingType: row.normalized.meetingType || undefined,
+      meetingHours: row.normalized.meetingHours ?? undefined,
+      instructor: row.normalized.instructor || undefined,
+      room: row.normalized.room || undefined,
     }));
 
     setLoading(true);
@@ -143,7 +157,8 @@ export default function ImportPage() {
           <p className="eyebrow">Migração</p>
           <h1>Importar Cronograma</h1>
           <p className="lead">
-            Analise a planilha antes de gravar. O sistema identifica o modelo, mapeia colunas e valida as linhas.
+            Analise a planilha antes de gravar. O sistema identifica o modelo, mapeia colunas e
+            valida as linhas.
           </p>
         </div>
         <Link href="/">Início</Link>
@@ -165,10 +180,22 @@ export default function ImportPage() {
       {preview && (
         <>
           <section className="calendar-summary">
-            <div><span>Modelo detectado</span><strong>{preview.template}</strong></div>
-            <div><span>Linhas</span><strong>{preview.totalRows}</strong></div>
-            <div><span>Válidas</span><strong>{preview.validRows}</strong></div>
-            <div><span>Inválidas</span><strong>{preview.invalidRows}</strong></div>
+            <div>
+              <span>Modelo detectado</span>
+              <strong>{preview.template}</strong>
+            </div>
+            <div>
+              <span>Linhas</span>
+              <strong>{preview.totalRows}</strong>
+            </div>
+            <div>
+              <span>Válidas</span>
+              <strong>{preview.validRows}</strong>
+            </div>
+            <div>
+              <span>Inválidas</span>
+              <strong>{preview.invalidRows}</strong>
+            </div>
           </section>
 
           <section className="form-card">
@@ -249,7 +276,8 @@ export default function ImportPage() {
             </div>
 
             <p className="muted">
-              A confirmação substitui os itens do cronograma da turma selecionada. Uma versão anterior é preservada quando já existe cronograma.
+              A confirmação substitui os itens do cronograma da turma selecionada. Uma versão
+              anterior é preservada quando já existe cronograma.
             </p>
 
             <button

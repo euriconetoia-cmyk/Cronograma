@@ -1,4 +1,9 @@
-import type { AcademicDayContext, AcademicDayDecision, CalendarRestriction, Weekday } from './types';
+import type {
+  AcademicDayContext,
+  AcademicDayDecision,
+  CalendarRestriction,
+  Weekday,
+} from './types';
 
 function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10);

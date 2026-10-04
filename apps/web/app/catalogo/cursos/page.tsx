@@ -31,7 +31,9 @@ export default function CoursesPage() {
     setModalities(modalitiesData);
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -59,19 +61,38 @@ export default function CoursesPage() {
       <h1>Cursos</h1>
       <form className="form-card" onSubmit={submit}>
         <div className="form-grid">
-          <label>Nome<input name="name" required /></label>
-          <label>Código<input name="code" required /></label>
-          <label>Carga horária<input name="totalHours" type="number" min="1" required /></label>
-          <label>Unidade responsável
+          <label>
+            Nome
+            <input name="name" required />
+          </label>
+          <label>
+            Código
+            <input name="code" required />
+          </label>
+          <label>
+            Carga horária
+            <input name="totalHours" type="number" min="1" required />
+          </label>
+          <label>
+            Unidade responsável
             <select name="responsibleUnitId">
               <option value="">Não definida</option>
-              {units.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+              {units.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
             </select>
           </label>
-          <label>Modalidade padrão
+          <label>
+            Modalidade padrão
             <select name="defaultModalityId">
               <option value="">Não definida</option>
-              {modalities.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+              {modalities.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
             </select>
           </label>
         </div>
@@ -81,11 +102,21 @@ export default function CoursesPage() {
 
       <div className="table-card">
         <table>
-          <thead><tr><th>Curso</th><th>Código</th><th>CH</th><th>Unidade</th><th>Modalidade</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Curso</th>
+              <th>Código</th>
+              <th>CH</th>
+              <th>Unidade</th>
+              <th>Modalidade</th>
+            </tr>
+          </thead>
           <tbody>
             {items.map((item) => (
               <tr key={item.id}>
-                <td>{item.name}</td><td>{item.code}</td><td>{item.totalHours} h</td>
+                <td>{item.name}</td>
+                <td>{item.code}</td>
+                <td>{item.totalHours} h</td>
                 <td>{item.responsibleUnit?.name ?? 'Não definida'}</td>
                 <td>{item.defaultModality?.name ?? 'Não definida'}</td>
               </tr>

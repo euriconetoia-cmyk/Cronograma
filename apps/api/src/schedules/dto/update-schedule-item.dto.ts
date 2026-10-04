@@ -1,17 +1,20 @@
-import { IsDateString, IsOptional, IsString } from 'class-validator';
+import { IsDateString, Matches, IsOptional, IsString } from 'class-validator';
 
 export class UpdateScheduleItemDto {
   @IsString()
   actorName!: string;
 
-  @IsDateString()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
   startDate!: string;
 
-  @IsDateString()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
   endDate!: string;
 
   @IsOptional()
-  @IsDateString()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
   avaEndDate?: string;
 
   @IsString()

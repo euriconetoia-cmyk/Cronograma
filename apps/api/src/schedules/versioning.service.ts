@@ -145,7 +145,12 @@ export class VersioningService {
         continue;
       }
 
-      const fields = ['startDate', 'endDate', 'avaEndDate', 'totalHours'];
+      const fields: (keyof VersionSnapshotItem)[] = [
+        'startDate',
+        'endDate',
+        'avaEndDate',
+        'totalHours',
+      ];
       const changedFields = fields
         .filter((field) => before[field] !== after[field])
         .map((field) => ({

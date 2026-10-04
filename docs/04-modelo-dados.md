@@ -3,69 +3,91 @@
 ## Entidades principais
 
 ### User
+
 Usuário autenticado.
 
 ### Role
+
 Perfil de acesso.
 
 ### Permission
+
 Permissão granular.
 
 ### Unit
+
 Unidade educacional.
 
 ### Course
+
 Curso.
 
 ### CourseVersion
+
 Versão da matriz de um curso.
 
 ### CourseModule
+
 Módulo curricular.
 
 ### CurricularUnit
+
 Unidade Curricular.
 
 ### Modality
+
 Modalidade configurável.
 
 ### AcademicCalendar
+
 Calendário por unidade e ano.
 
 ### CalendarEvent
+
 Feriado, recesso, bloqueio ou outro evento.
 
 ### ClassGroup
+
 Turma.
 
 ### ClassScheduleRule
+
 Dias, horários e limites da turma.
 
 ### Schedule
+
 Cronograma lógico da turma.
 
 ### ScheduleVersion
+
 Versão imutável ou historizada de um cronograma.
 
 ### ScheduleItem
+
 Item acadêmico gerado, como UC, recuperação ou matrícula.
 
 ### Meeting
+
 Encontro com data e horário.
 
 ### Person
+
 Pessoa vinculada ao processo acadêmico.
 
 ### InstructorAvailability
+
 Disponibilidade de instrutor.
 
 ### Room
+
 Sala ou laboratório.
 
 ### Approval
+
 Fluxo de aprovação.
 
 ### AuditLog
+
 Registro de alterações.
 
 ## Relacionamentos

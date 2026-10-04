@@ -1,9 +1,9 @@
 ---
 name: Tarefa de desenvolvimento
 about: Planejar uma nova funcionalidade, correção ou melhoria
-title: ""
-labels: ""
-assignees: ""
+title: ''
+labels: ''
+assignees: ''
 ---
 
 ## Objetivo

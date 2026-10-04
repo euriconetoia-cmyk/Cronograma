@@ -35,8 +35,18 @@ const eventTypes = [
 ] as const;
 
 const monthNames = [
-  'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
 ];
 
 export default function CalendarsPage() {
@@ -55,7 +65,9 @@ export default function CalendarsPage() {
     if (!selectedId && calendarData[0]) setSelectedId(calendarData[0].id);
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   const selected = calendars.find((item) => item.id === selectedId);
 
@@ -119,7 +131,8 @@ export default function CalendarsPage() {
           <p className="eyebrow">Planejamento</p>
           <h1>Calendário Acadêmico</h1>
           <p className="lead">
-            Defina os dias que podem ou não receber atividades e alimente diretamente o Schedule Engine.
+            Defina os dias que podem ou não receber atividades e alimente diretamente o Schedule
+            Engine.
           </p>
         </div>
         <Link href="/catalogo">Voltar ao catálogo</Link>
@@ -128,13 +141,23 @@ export default function CalendarsPage() {
       <section className="calendar-forms">
         <form className="form-card" onSubmit={submitCalendar}>
           <h2>Novo calendário</h2>
-          <label>Nome<input name="name" placeholder="Calendário Roberto Mange 2027" required /></label>
-          <label>Ano<input name="year" type="number" min="2000" max="2100" required /></label>
+          <label>
+            Nome
+            <input name="name" placeholder="Calendário Roberto Mange 2027" required />
+          </label>
+          <label>
+            Ano
+            <input name="year" type="number" min="2000" max="2100" required />
+          </label>
           <label>
             Unidade
             <select name="unitId" required>
               <option value="">Selecione</option>
-              {units.map((unit) => <option value={unit.id} key={unit.id}>{unit.name}</option>)}
+              {units.map((unit) => (
+                <option value={unit.id} key={unit.id}>
+                  {unit.name}
+                </option>
+              ))}
             </select>
           </label>
           <button type="submit">Criar calendário</button>
@@ -153,19 +176,41 @@ export default function CalendarsPage() {
               ))}
             </select>
           </label>
-          <label>Tipo
+          <label>
+            Tipo
             <select name="type" required>
-              {eventTypes.map(([value,label]) => <option key={value} value={value}>{label}</option>)}
+              {eventTypes.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
             </select>
           </label>
-          <label>Título<input name="title" required /></label>
+          <label>
+            Título
+            <input name="title" required />
+          </label>
           <div className="form-grid">
-            <label>Início<input name="startDate" type="date" required /></label>
-            <label>Término<input name="endDate" type="date" required /></label>
+            <label>
+              Início
+              <input name="startDate" type="date" required />
+            </label>
+            <label>
+              Término
+              <input name="endDate" type="date" required />
+            </label>
           </div>
-          <label><input name="blocksAcademicActivities" type="checkbox" defaultChecked /> Bloqueia atividades acadêmicas</label>
-          <label>Descrição<textarea name="description" rows={3} /></label>
-          <button type="submit" disabled={!selectedId}>Adicionar evento</button>
+          <label>
+            <input name="blocksAcademicActivities" type="checkbox" defaultChecked /> Bloqueia
+            atividades acadêmicas
+          </label>
+          <label>
+            Descrição
+            <textarea name="description" rows={3} />
+          </label>
+          <button type="submit" disabled={!selectedId}>
+            Adicionar evento
+          </button>
         </form>
       </section>
 
@@ -177,7 +222,9 @@ export default function CalendarsPage() {
           <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
             <option value="">Selecione</option>
             {calendars.map((item) => (
-              <option key={item.id} value={item.id}>{item.name} | {item.unit.name}</option>
+              <option key={item.id} value={item.id}>
+                {item.name} | {item.unit.name}
+              </option>
             ))}
           </select>
         </label>
@@ -186,12 +233,23 @@ export default function CalendarsPage() {
       {selected && (
         <>
           <section className="calendar-summary">
-            <div><span>Ano</span><strong>{selected.year}</strong></div>
-            <div><span>Unidade</span><strong>{selected.unit.name}</strong></div>
-            <div><span>Eventos</span><strong>{selected.events.length}</strong></div>
+            <div>
+              <span>Ano</span>
+              <strong>{selected.year}</strong>
+            </div>
+            <div>
+              <span>Unidade</span>
+              <strong>{selected.unit.name}</strong>
+            </div>
+            <div>
+              <span>Eventos</span>
+              <strong>{selected.events.length}</strong>
+            </div>
             <div>
               <span>Bloqueios</span>
-              <strong>{selected.events.filter((event) => event.blocksAcademicActivities).length}</strong>
+              <strong>
+                {selected.events.filter((event) => event.blocksAcademicActivities).length}
+              </strong>
             </div>
           </section>
 
@@ -206,14 +264,21 @@ export default function CalendarsPage() {
                   ) : (
                     <ul className="event-list">
                       {events.map((event) => (
-                        <li key={event.id} className={event.blocksAcademicActivities ? 'blocked-event' : ''}>
+                        <li
+                          key={event.id}
+                          className={event.blocksAcademicActivities ? 'blocked-event' : ''}
+                        >
                           <strong>{event.title}</strong>
                           <span>
-                            {new Date(event.startDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                            {new Date(event.startDate).toLocaleDateString('pt-BR', {
+                              timeZone: 'UTC',
+                            })}
                             {event.startDate !== event.endDate &&
                               ` a ${new Date(event.endDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}`}
                           </span>
-                          <small>{event.blocksAcademicActivities ? 'Bloqueia atividades' : 'Informativo'}</small>
+                          <small>
+                            {event.blocksAcademicActivities ? 'Bloqueia atividades' : 'Informativo'}
+                          </small>
                         </li>
                       ))}
                     </ul>

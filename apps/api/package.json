@@ -2,30 +2,33 @@
   "name": "@cronograma/api",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/main.ts",
+    "dev": "pnpm build && node --env-file=../../.env dist/main.js",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "echo \"api: testes serão adicionados por módulo\""
+    "test": "tsc -p tsconfig.test.json && node --test dist-tests/test/*.test.js",
+    "start": "node --env-file=../../.env dist/main.js"
   },
   "dependencies": {
     "@cronograma/database": "workspace:*",
-    "@cronograma/validation-engine": "workspace:*",
-    "@nestjs/common": "latest",
-    "@nestjs/core": "latest",
-    "@nestjs/platform-express": "latest",
-    "class-transformer": "latest",
-    "class-validator": "latest",
-    "reflect-metadata": "latest",
-    "rxjs": "latest",
     "@cronograma/schedule-engine": "workspace:*",
-    "exceljs": "latest",
-    "multer": "latest"
+    "@cronograma/validation-engine": "workspace:*",
+    "@nestjs/common": "12.1.2",
+    "@nestjs/core": "12.1.2",
+    "@nestjs/platform-express": "12.1.2",
+    "class-transformer": "0.5.1",
+    "class-validator": "0.15.1",
+    "exceljs": "4.4.0",
+    "multer": "2.4.0",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2"
   },
   "devDependencies": {
-    "@types/node": "latest",
-    "tsx": "latest",
-    "typescript": "latest",
-    "@types/multer": "latest",
-    "@types/express": "latest"
+    "@swc-node/register": "1.12.1",
+    "@swc/core": "1.16.13",
+    "@types/express": "5.0.6",
+    "@types/multer": "2.3.0",
+    "@types/node": "26.6.4",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
   }
 }

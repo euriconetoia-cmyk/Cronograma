@@ -1,5 +1,4 @@
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 export async function apiGet<T>(path: string): Promise<T> {
   const response = await fetch(`${API_URL}/api${path}`, { cache: 'no-store' });
@@ -25,7 +24,6 @@ export async function apiPost<T>(path: string, data: unknown): Promise<T> {
 
   return response.json() as Promise<T>;
 }
-
 
 export async function apiPatch<T>(path: string, data: unknown): Promise<T> {
   const response = await fetch(`${API_URL}/api${path}`, {

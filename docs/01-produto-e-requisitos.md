@@ -35,15 +35,19 @@ O sistema deverá permitir:
 ## Perfis iniciais
 
 ### Administrador
+
 Acesso integral.
 
 ### Coordenação
+
 Consulta, revisão, solicitação de ajustes e aprovação.
 
 ### Planejamento
+
 Cadastro, geração, edição, simulação e envio para aprovação.
 
 ### Consulta
+
 Acesso somente para leitura e relatórios.
 
 ## Dashboard

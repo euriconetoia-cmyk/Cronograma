@@ -102,11 +102,15 @@ export class ClassesService {
     const hasSunday = data.scheduleRules.some((rule) => rule.weekday === Weekday.SUNDAY);
 
     if (hasSaturday && !data.allowSaturday) {
-      throw new BadRequestException('Há regra de sábado, mas a turma não permite atividades aos sábados.');
+      throw new BadRequestException(
+        'Há regra de sábado, mas a turma não permite atividades aos sábados.',
+      );
     }
 
     if (hasSunday && !data.allowSunday) {
-      throw new BadRequestException('Há regra de domingo, mas a turma não permite atividades aos domingos.');
+      throw new BadRequestException(
+        'Há regra de domingo, mas a turma não permite atividades aos domingos.',
+      );
     }
 
     for (const rule of data.scheduleRules) {

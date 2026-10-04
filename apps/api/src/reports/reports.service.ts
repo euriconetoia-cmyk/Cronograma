@@ -20,13 +20,7 @@ export class ReportsService {
         : {}),
     };
 
-    const [
-      classes,
-      courses,
-      schedules,
-      rooms,
-      people,
-    ] = await Promise.all([
+    const [classes, courses, schedules, rooms, people] = await Promise.all([
       this.database.classGroup.findMany({
         where: classWhere,
         include: {
@@ -82,18 +76,11 @@ export class ReportsService {
       return acc;
     }, {});
 
-    const plannedHours = classes.reduce(
-      (sum, item) => sum + item.course.totalHours,
-      0,
-    );
+    const plannedHours = classes.reduce((sum, item) => sum + item.course.totalHours, 0);
 
     const totalMeetings = schedules.reduce(
       (sum, schedule) =>
-        sum +
-        schedule.items.reduce(
-          (itemSum, item) => itemSum + item.meetings.length,
-          0,
-        ),
+        sum + schedule.items.reduce((itemSum, item) => itemSum + item.meetings.length, 0),
       0,
     );
 
@@ -223,9 +210,7 @@ export class ReportsService {
 
     const instructorIds = [
       ...new Set(
-        meetings
-          .map((meeting) => meeting.instructorId)
-          .filter((id): id is string => Boolean(id)),
+        meetings.map((meeting) => meeting.instructorId).filter((id): id is string => Boolean(id)),
       ),
     ];
 
@@ -256,6 +241,9 @@ export class ReportsService {
         startTime: meeting.startTime,
         endTime: meeting.endTime,
         instructorId: meeting.instructorId,
+        instructorName: meeting.instructor?.name,
+        roomName: meeting.room?.name,
+        classCode: meeting.scheduleItem.schedule.classGroup.code,
         roomId: meeting.roomId,
         roomCapacity: meeting.room?.capacity,
         expectedStudents: meeting.scheduleItem.schedule.classGroup.expectedStudents,
@@ -307,12 +295,15 @@ export class ReportsService {
       },
     });
 
-    const grouped = new Map<string, {
-      instructorId: string;
-      name: string;
-      hours: number;
-      meetings: number;
-    }>();
+    const grouped = new Map<
+      string,
+      {
+        instructorId: string;
+        name: string;
+        hours: number;
+        meetings: number;
+      }
+    >();
 
     for (const meeting of meetings) {
       if (!meeting.instructor) continue;
@@ -357,13 +348,16 @@ export class ReportsService {
       },
     });
 
-    const grouped = new Map<string, {
-      roomId: string;
-      name: string;
-      code: string;
-      hours: number;
-      meetings: number;
-    }>();
+    const grouped = new Map<
+      string,
+      {
+        roomId: string;
+        name: string;
+        code: string;
+        hours: number;
+        meetings: number;
+      }
+    >();
 
     for (const meeting of meetings) {
       if (!meeting.room) continue;

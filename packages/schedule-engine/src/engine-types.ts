@@ -28,6 +28,7 @@ export interface ModuleInput {
 }
 
 export interface GenerateScheduleInput {
+  academicYear?: number;
   startDate: string;
   endDateLimit?: string;
   modules: ModuleInput[];

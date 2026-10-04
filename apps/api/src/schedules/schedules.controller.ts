@@ -38,70 +38,36 @@ export class SchedulesController {
     @Param('fromVersion') fromVersion: string,
     @Param('toVersion') toVersion: string,
   ) {
-    return this.workflowService.compare(
-      classGroupId,
-      Number(fromVersion),
-      Number(toVersion),
-    );
+    return this.workflowService.compare(classGroupId, Number(fromVersion), Number(toVersion));
   }
 
   @Post('class/:classGroupId/review')
-  submitForReview(
-    @Param('classGroupId') classGroupId: string,
-    @Body() data: WorkflowActionDto,
-  ) {
-    return this.workflowService.submitForReview(
-      classGroupId,
-      data.actorName,
-      data.comment,
-    );
+  submitForReview(@Param('classGroupId') classGroupId: string, @Body() data: WorkflowActionDto) {
+    return this.workflowService.submitForReview(classGroupId, data.actorName, data.comment);
   }
 
   @Post('class/:classGroupId/request-approval')
-  requestApproval(
-    @Param('classGroupId') classGroupId: string,
-    @Body() data: WorkflowActionDto,
-  ) {
-    return this.workflowService.requestApproval(
-      classGroupId,
-      data.actorName,
-      data.comment,
-    );
+  requestApproval(@Param('classGroupId') classGroupId: string, @Body() data: WorkflowActionDto) {
+    return this.workflowService.requestApproval(classGroupId, data.actorName, data.comment);
   }
 
   @Post('class/:classGroupId/approve')
-  approve(
-    @Param('classGroupId') classGroupId: string,
-    @Body() data: WorkflowActionDto,
-  ) {
+  approve(@Param('classGroupId') classGroupId: string, @Body() data: WorkflowActionDto) {
     return this.workflowService.approve(classGroupId, data.actorName, data.comment);
   }
 
   @Post('class/:classGroupId/reject')
-  reject(
-    @Param('classGroupId') classGroupId: string,
-    @Body() data: WorkflowActionDto,
-  ) {
+  reject(@Param('classGroupId') classGroupId: string, @Body() data: WorkflowActionDto) {
     return this.workflowService.reject(classGroupId, data.actorName, data.comment);
   }
 
   @Post('class/:classGroupId/request-changes')
-  requestChanges(
-    @Param('classGroupId') classGroupId: string,
-    @Body() data: WorkflowActionDto,
-  ) {
-    return this.workflowService.requestChanges(
-      classGroupId,
-      data.actorName,
-      data.comment,
-    );
+  requestChanges(@Param('classGroupId') classGroupId: string, @Body() data: WorkflowActionDto) {
+    return this.workflowService.requestChanges(classGroupId, data.actorName, data.comment);
   }
 
   @Post('class/:classGroupId/publish')
-  publish(
-    @Param('classGroupId') classGroupId: string,
-    @Body() data: WorkflowActionDto,
-  ) {
+  publish(@Param('classGroupId') classGroupId: string, @Body() data: WorkflowActionDto) {
     return this.workflowService.publish(classGroupId, data.actorName, data.comment);
   }
 
@@ -111,10 +77,7 @@ export class SchedulesController {
   }
 
   @Patch('meetings/:id/resources')
-  assignMeetingResource(
-    @Param('id') id: string,
-    @Body() data: AssignMeetingResourceDto,
-  ) {
+  assignMeetingResource(@Param('id') id: string, @Body() data: AssignMeetingResourceDto) {
     return this.schedulesService.assignMeetingResource(id, data);
   }
 

@@ -48,7 +48,9 @@ export default function SchedulePreviewPage() {
     }
   }
 
-  useEffect(() => { void load(); }, [id]);
+  useEffect(() => {
+    void load();
+  }, [id]);
 
   async function save() {
     setSaving(true);
@@ -82,17 +84,31 @@ export default function SchedulePreviewPage() {
       ) : (
         <>
           <section className="calendar-summary">
-            <div><span>Início</span><strong>{formatDate(preview.startDate)}</strong></div>
-            <div><span>Término</span><strong>{formatDate(preview.endDate)}</strong></div>
-            <div><span>Itens</span><strong>{preview.items.length}</strong></div>
-            <div><span>Alertas</span><strong>{preview.warnings.length}</strong></div>
+            <div>
+              <span>Início</span>
+              <strong>{formatDate(preview.startDate)}</strong>
+            </div>
+            <div>
+              <span>Término</span>
+              <strong>{formatDate(preview.endDate)}</strong>
+            </div>
+            <div>
+              <span>Itens</span>
+              <strong>{preview.items.length}</strong>
+            </div>
+            <div>
+              <span>Alertas</span>
+              <strong>{preview.warnings.length}</strong>
+            </div>
           </section>
 
           {preview.warnings.length > 0 && (
             <section className="warning-box">
               <h2>Alertas da geração</h2>
               <ul>
-                {preview.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+                {preview.warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
               </ul>
             </section>
           )}
@@ -101,7 +117,9 @@ export default function SchedulePreviewPage() {
             <a href={`${API_URL}/api/import-export/schedules/${id}.xlsx`}>Exportar Excel</a>
             <a href={`${API_URL}/api/import-export/schedules/${id}.csv`}>Exportar CSV</a>
             <Link href={`/turmas/${id}/cronograma/editor`}>Abrir editor</Link>
-            <button type="button" onClick={() => void load()}>Recalcular prévia</button>
+            <button type="button" onClick={() => void load()}>
+              Recalcular prévia
+            </button>
             <button type="button" onClick={() => void save()} disabled={saving}>
               {saving ? 'Salvando...' : 'Gerar e salvar cronograma'}
             </button>
@@ -113,15 +131,28 @@ export default function SchedulePreviewPage() {
                 <div className="schedule-item-head">
                   <div>
                     <span>{item.type === 'RECOVERY' ? 'Recuperação' : 'Unidade Curricular'}</span>
-                    <h2>{item.order}. {item.title}</h2>
+                    <h2>
+                      {item.order}. {item.title}
+                    </h2>
                   </div>
                   <strong>{item.totalHours} h</strong>
                 </div>
 
                 <div className="schedule-dates">
-                  <div><span>Início</span><strong>{formatDate(item.startDate)}</strong></div>
-                  <div><span>Término</span><strong>{formatDate(item.endDate)}</strong></div>
-                  <div><span>AVA</span><strong>{item.avaEndDate ? formatDate(item.avaEndDate) : 'Não aplicável'}</strong></div>
+                  <div>
+                    <span>Início</span>
+                    <strong>{formatDate(item.startDate)}</strong>
+                  </div>
+                  <div>
+                    <span>Término</span>
+                    <strong>{formatDate(item.endDate)}</strong>
+                  </div>
+                  <div>
+                    <span>AVA</span>
+                    <strong>
+                      {item.avaEndDate ? formatDate(item.avaEndDate) : 'Não aplicável'}
+                    </strong>
+                  </div>
                 </div>
 
                 {item.meetings.length > 0 && (
@@ -131,7 +162,9 @@ export default function SchedulePreviewPage() {
                       <div className="meeting-row" key={meeting.number}>
                         <strong>Encontro {meeting.number}</strong>
                         <span>{formatDate(meeting.date)}</span>
-                        <span>{meeting.startTime} às {meeting.endTime}</span>
+                        <span>
+                          {meeting.startTime} às {meeting.endTime}
+                        </span>
                         <span>{meeting.type}</span>
                       </div>
                     ))}

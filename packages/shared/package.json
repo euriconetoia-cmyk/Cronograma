@@ -1,9 +1,12 @@
 {
   "name": "@cronograma/shared",
   "private": true,
-  "type": "module",
+  "type": "commonjs",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -11,6 +14,8 @@
     "test": "echo \"shared: sem testes nesta fase\""
   },
   "devDependencies": {
-    "typescript": "latest"
-  }
+    "typescript": "5.9.3"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
 }
